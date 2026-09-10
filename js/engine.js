@@ -8,11 +8,14 @@
  *   - delayed:          dose agendada com data-alvo já vencida (busca ativa)
  *   - eligible:         dentro da janela de elegibilidade etária (sem dependência de dose anterior)
  *   - relative_pending: depende de uma dose anterior JÁ marcada, mas a DATA da dose anterior
- *                       não é armazenada -> não se pode afirmar prontidão. Conservador:
- *                       "X meses após a dose anterior — confirme a data na caderneta".
- *   - future:          ainda não chegou / não elegível ainda / aguardando dose anterior / conforme indicação
- *   - window_closed:   janela de oportunidade encerrada (não aplicar por faixa etária)
- *   - history:         "conforme histórico/caderneta" — NUNCA vira atraso
+ *                       não é armazenada -> não se pode afirmar prontidão.
+ *   - future:           ainda não chegou / não elegível / aguardando dose anterior
+ *   - window_closed:    janela de oportunidade encerrada
+ *   - history:          conforme histórico/caderneta/condição — NUNCA vira atraso
+ *
+ * Perfis gestante/trabalhador de saúde são deliberadamente conservadores:
+ * mesmo sem atraso automático, o status geral é "alert" (UI: Atenção), nunca "ok/Em Dia",
+ * porque o app não possui informação suficiente para afirmar situação vacinal completa.
  */
 (function (root, factory) {
   var mod = factory();
@@ -21,7 +24,6 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  // ---------- Datas ----------
   function parseBirth(dateStr) { return new Date(dateStr + 'T12:00:00'); }
   function addMonths(dateStr, months) {
     if (!dateStr) return new Date();
@@ -60,7 +62,6 @@
     return r === 0 ? y + ' a' : y + 'a ' + r + 'm';
   }
 
-  // ---------- Avaliação de uma dose ----------
   function windowOpenClose(birth, rule) {
     var open = (rule.minDays != null) ? addDays(birth, rule.minDays) : addMonths(birth, rule.minMonths || 0);
     var close = (rule.maxDays != null) ? addDays(birth, rule.maxDays)
@@ -101,12 +102,10 @@
       out.daysDiff = getDaysDiff(w.target, today);
       if (openDiff > 0) { out.status = 'future'; out.tDateStr = 'A partir de ' + formatDate(w.open); return out; }
       if (closeDiff < 0) { out.status = 'window_closed'; out.tDateStr = 'Janela encerrada'; return out; }
-      // Dentro da janela etária. Se depende de uma dose anterior, aplicar princípio conservador:
       if (rule.afterDoseId) {
         if (!appliedSet.has(rule.afterDoseId)) {
           out.status = 'future'; out.tDateStr = 'Após a dose anterior'; return out;
         }
-        // dose anterior marcada, mas sem DATA -> não afirmar prontidão
         out.status = 'relative_pending';
         out.tDateStr = 'A partir de ' + (rule.minIntervalDays != null ? intervalLabel(rule.minIntervalDays) : 'a dose anterior') + ' — confirme a data na caderneta';
         return out;
@@ -119,7 +118,6 @@
       var close = rule.maxMonths != null ? addMonths(child.birthDate, rule.maxMonths) : null;
       if (close && getDaysDiff(close, today) < 0) { out.status = 'window_closed'; out.tDateStr = 'Janela encerrada'; return out; }
       if (!appliedSet.has(rule.afterDoseId)) { out.status = 'future'; out.tDateStr = 'Após a dose anterior'; return out; }
-      // dose anterior marcada, mas sem DATA armazenada -> estado conservador, sem inventar elegibilidade
       out.status = 'relative_pending';
       out.tDateStr = intervalLabel(rule.offsetDays) + ' — confirme a data na caderneta';
       return out;
@@ -128,10 +126,13 @@
     out.status = 'future'; return out;
   }
 
-  // ---------- Análise do calendário do paciente ----------
   function groupsForProfile(calendar, profileType) {
     var pt = profileType || 'crianca';
     return calendar.groups.filter(function (g) { return g.profileTypes.indexOf(pt) !== -1; });
+  }
+
+  function isSpecialProfile(profileType) {
+    return profileType === 'gestante' || profileType === 'trabsaude';
   }
 
   function analisarCalendario(child, calendar, today) {
@@ -153,25 +154,24 @@
         });
       });
     });
-    return { doses: analise, generalStatus: hasDelayed ? 'danger' : (hasAlert ? 'alert' : 'ok') };
+
+    var generalStatus = hasDelayed ? 'danger' : ((hasAlert || isSpecialProfile(pt)) ? 'alert' : 'ok');
+    return { doses: analise, generalStatus: generalStatus, requiresReview: isSpecialProfile(pt) };
   }
 
-  // Total de doses "completáveis" (exclui history_check) para a barra de progresso.
   function getTotalDoses(profileType, calendar) {
+    var includeHistory = isSpecialProfile(profileType);
     return groupsForProfile(calendar, profileType).reduce(function (acc, g) {
-      return acc + g.doses.filter(function (d) { return (d.rule || {}).type !== 'history_check'; }).length;
+      return acc + g.doses.filter(function (d) {
+        return includeHistory || (d.rule || {}).type !== 'history_check';
+      }).length;
     }, 0);
   }
 
-  // Busca ativa (pendências que podem ser afirmadas): atrasadas + elegíveis por idade.
-  // NÃO inclui relative_pending (depende de data não armazenada -> conservador).
   function pendenciasBuscaAtiva(analise) {
     return analise.doses.filter(function (d) { return d.status === 'delayed' || d.status === 'eligible'; });
   }
 
-  // ---------- Migração de dados (NUNCA descarta informação) ----------
-  // Remaps SEMANTICAMENTE EQUIVALENTES apenas (mesma vacina/mesmo sentido).
-  // dt_12 NÃO entra aqui: "atualizar esquema" != reforço programado aos 14a -> vira legado.
   var MIGRATION_MAP = {
     hpv_u9: 'hpv_dose', hpv_u12: 'hpv_dose', hpv_u13: 'hpv_dose', hpv_u14: 'hpv_dose',
     hpv_res: 'hpv_resgate',
@@ -187,10 +187,6 @@
     return ids;
   }
 
-  // Migra um paciente:
-  //  - applied: só IDs válidos atuais + remaps equivalentes.
-  //  - legacyApplied: preserva TODO ID antigo sem equivalente atual (ex.: dt_12, covid_res5,
-  //    ou qualquer desconhecido), sem perda e fora do cálculo clínico atual.
   function migrateChild(child, calendar) {
     var ids = validDoseIds(calendar);
     var applied = Array.isArray(child.applied) ? child.applied : [];
@@ -206,7 +202,7 @@
       } else if (ids.has(id)) {
         addApplied(id);
       } else {
-        addLegacy(id); // desconhecido/órfão -> preservado, nunca descartado
+        addLegacy(id);
       }
     });
 
