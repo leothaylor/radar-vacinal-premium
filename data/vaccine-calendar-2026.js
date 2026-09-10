@@ -22,7 +22,7 @@
     vaccineDataVersion: '2026.09.10',
     revisionDate: '2026-09-10',
     sourceAuthority: 'Ministério da Saúde / PNI',
-    schemaVersion: 2,
+    schemaVersion: 3,
     sourceDocuments: [
       { id: 'IN2026', title: 'Instrução Normativa — Calendário Nacional de Vacinação 2026', url: 'https://www.gov.br/saude/pt-br/vacinacao/publicacoes/instrucao-normativa-que-instrui-o-calendario-nacional-de-vacinacao-2026.pdf' },
       { id: 'CAL2026', title: 'Calendário de Vacinação (página oficial)', url: 'https://www.gov.br/saude/pt-br/vacinacao/calendario' },
