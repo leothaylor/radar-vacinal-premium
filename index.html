@@ -2,27 +2,31 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Radar Vacinal Premium</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        brand: { light: '#2dd4bf', DEFAULT: '#0d9488', dark: '#0369a1' },
-                        clin: { ok: '#10b981', alert: '#f59e0b', danger: '#ef4444', future: '#64748b' }
-                    }
-                }
-            }
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Radar Vacinal ACS</title>
+    <meta name="description" content="Radar Vacinal ACS — ferramenta gratuita de apoio ao acompanhamento do Calendário Nacional de Vacinação para Agentes Comunitários de Saúde. Local, offline e sem cadastro.">
+    <meta name="theme-color" content="#78C7C7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Radar Vacinal ACS">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <meta property="og:title" content="Radar Vacinal ACS">
+    <meta property="og:description" content="Ferramenta gratuita de apoio ao acompanhamento vacinal para ACS. Local, offline e sem cadastro.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://leothaylor.github.io/radar-vacinal-premium/logo-radar-acs1.png">
+    <meta property="og:url" content="https://leothaylor.github.io/radar-vacinal-premium/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Radar Vacinal ACS">
+    <meta name="twitter:description" content="Ferramenta gratuita de apoio ao acompanhamento vacinal para ACS.">
+    <meta name="twitter:image" content="https://leothaylor.github.io/radar-vacinal-premium/logo-radar-acs1.png">
+    <link rel="stylesheet" href="./vendor/tailwind.build.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
     <style>
-        body { -webkit-font-smoothing: antialiased; background-color: #f1f5f9; }
+        body { -webkit-font-smoothing: antialiased; background-color: #f1f5f9; font-family: 'Inter', sans-serif; }
         .view-transition { animation: fadeIn 0.2s ease-out; }
         .slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -64,9 +68,20 @@
         .pt-btn { transition: all 0.15s; }
         .pt-btn.active { background:#78C7C7; color:#fff; border-color:#78C7C7; }
         .pt-btn:not(.active) { background:#f8fafc; color:#475569; border-color:#e2e8f0; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+            .neon-ring, .neon-ring::before { animation: none !important; }
+            .btn-promo-pulse { animation: none !important; }
+        }
+        :focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; border-radius: 6px; }
+        button:focus:not(:focus-visible), input:focus:not(:focus-visible) { outline: none; }
+        button, [role="button"], a, label { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="text-slate-800 h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden">
+
+<!-- TOAST -->
+<div id="radar-toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[85] hidden items-center gap-3 bg-white border border-slate-200 shadow-xl rounded-2xl px-4 py-3 w-[92%] max-w-sm" role="status" aria-live="polite"></div>
 
 <!-- PRELOADER -->
 <div id="preloader" class="fixed inset-0 z-[100] bg-[#78C7C7] flex items-center justify-center">
@@ -76,31 +91,6 @@
             class="w-full h-full object-contain rounded-full relative z-10 logo-reveal"
             onerror="this.onerror=null; this.outerHTML='<div class=\'w-full h-full bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center logo-reveal\' id=\'preloader-logo\'><i data-lucide=\'radar\' class=\'w-8 h-8 text-white\'></i></div>'; lucide.createIcons();">
     </div>
-</div>
-
-<!-- LOGIN SCREEN -->
-<div id="view-login" class="fixed inset-0 z-[90] bg-[#78C7C7] hidden flex-col items-center justify-center px-6">
-    <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center view-transition">
-        <img src="./logo-radar-acs1.png" alt="Logo" class="w-20 h-20 object-contain mb-4 rounded-2xl"
-            onerror="this.onerror=null; this.outerHTML='<div class=\'w-20 h-20 bg-[#78C7C7]/10 rounded-2xl flex items-center justify-center mb-4\'><i data-lucide=\'radar\' class=\'w-10 h-10 text-[#78C7C7]\'></i></div>'; lucide.createIcons();">
-        <h1 class="text-2xl font-black text-slate-800 text-center leading-tight">Radar Vacinal Premium</h1>
-        <p class="text-sm text-slate-500 font-medium mt-1 mb-6">Acesso exclusivo</p>
-        <div class="w-full space-y-3">
-            <div>
-                <label class="text-xs font-bold text-slate-600 block mb-1">Usuário</label>
-                <input type="text" id="login-user" placeholder="usuário" autocomplete="username"
-                    class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#78C7C7] font-medium text-slate-800 text-sm transition-colors">
-            </div>
-            <div>
-                <label class="text-xs font-bold text-slate-600 block mb-1">Senha</label>
-                <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
-                    class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#78C7C7] font-medium text-slate-800 text-sm transition-colors">
-            </div>
-            <div id="login-error" class="hidden text-xs text-red-500 font-medium text-center bg-red-50 border border-red-200 rounded-lg py-2 px-3">Credenciais incorretas. Tente novamente.</div>
-            <button onclick="doLogin()" class="w-full bg-[#78C7C7] hover:bg-teal-500 text-white font-bold py-3.5 rounded-xl shadow-md transition-all active:scale-95 mt-2">Entrar</button>
-        </div>
-    </div>
-    <p class="text-white/70 text-xs mt-6 font-medium">Radar Vacinal Premium · CNV 2026</p>
 </div>
 
 <!-- MODAL DICIONÁRIO -->
@@ -151,6 +141,48 @@
     </div>
 </div>
 
+<!-- MODAL SOBRE E DADOS -->
+<div id="modal-sobre" class="fixed inset-0 z-[70] bg-slate-900/40 hidden flex-col justify-end backdrop-blur-sm view-transition">
+    <div class="bg-white w-full max-w-md mx-auto h-[85vh] rounded-t-3xl shadow-2xl flex flex-col slide-up">
+        <div class="flex justify-between items-center px-6 py-5 border-b border-slate-100 shrink-0">
+            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i data-lucide="info" class="w-5 h-5 text-[#78C7C7]"></i> Sobre e dados</h3>
+            <button onclick="app.hideSobre()" aria-label="Fechar" class="p-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-5 text-sm">
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2"><p class="text-[9px] font-bold text-slate-400 uppercase">App</p><p class="text-xs font-bold text-slate-700" id="sobre-app-version">--</p></div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2"><p class="text-[9px] font-bold text-slate-400 uppercase">Base vacinal</p><p class="text-xs font-bold text-slate-700" id="sobre-data-version">--</p></div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2"><p class="text-[9px] font-bold text-slate-400 uppercase">Revisão</p><p class="text-xs font-bold text-slate-700" id="sobre-revisao">--</p></div>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p class="font-bold text-amber-800 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="stethoscope" class="w-4 h-4"></i> Aviso clínico</p>
+                <p class="text-[12px] text-amber-900 leading-relaxed">Ferramenta de apoio à organização. Antes de orientar, registrar uma pendência ou considerar uma vacina em atraso, confirme a recomendação vigente e a situação vacinal com um profissional qualificado da sua equipe ou com o serviço de vacinação. O calendário pode receber atualizações do Ministério da Saúde.</p>
+                <p class="text-[11px] text-amber-700/90 mt-2">Base vacinal revisada em <span id="sobre-revisao-inline">--</span>, com referência nas publicações oficiais do Ministério da Saúde. Consulte sempre a caderneta, o protocolo vigente e as orientações da sua equipe.</p>
+            </div>
+            <div>
+                <p class="font-bold text-slate-700 text-xs uppercase mb-2 flex items-center gap-1.5"><i data-lucide="book-marked" class="w-4 h-4 text-[#78C7C7]"></i> Fontes oficiais</p>
+                <ul id="sobre-fontes" class="list-disc pl-5 space-y-1 text-[12px] text-slate-600"></ul>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <p class="font-bold text-slate-700 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-slate-500"></i> Privacidade</p>
+                <p class="text-[12px] text-slate-600 leading-relaxed">Os dados ficam armazenados <strong>somente neste dispositivo</strong>. Prefira apelidos ou iniciais quando possível. Se o dispositivo for perdido ou os dados do navegador forem apagados sem backup, as informações não poderão ser recuperadas.</p>
+            </div>
+            <div>
+                <p class="font-bold text-slate-700 text-xs uppercase mb-2 flex items-center gap-1.5"><i data-lucide="database" class="w-4 h-4 text-[#78C7C7]"></i> Seus dados (backup local)</p>
+                <div class="space-y-2">
+                    <button onclick="app.exportBackup()" class="w-full flex items-center justify-center gap-2 bg-[#78C7C7] text-white font-bold py-3 rounded-xl shadow-sm hover:bg-teal-600 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Exportar backup</button>
+                    <button onclick="app.triggerImport()" class="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors"><i data-lucide="upload" class="w-4 h-4"></i> Restaurar backup</button>
+                    <button onclick="app.clearAllData()" class="w-full flex items-center justify-center gap-2 bg-red-50 text-red-700 border border-red-200 font-bold py-3 rounded-xl hover:bg-red-100 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i> Apagar todos os dados</button>
+                    <input type="file" id="sobre-import-input" accept="application/json,.json" class="hidden" onchange="app.importBackup(this)">
+                </div>
+                <p class="text-[10px] text-slate-400 mt-2">O backup é um arquivo salvo no seu aparelho. Nada é enviado para servidores.</p>
+            </div>
+            <button onclick="app.promptInstall()" class="w-full flex items-center justify-center gap-2 bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors mb-2"><i data-lucide="download" class="w-4 h-4"></i> Instalar o app</button>
+            <button onclick="app.shareRadar()" class="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-50 transition-colors"><i data-lucide="share-2" class="w-4 h-4"></i> Compartilhar o Radar</button>
+        </div>
+    </div>
+</div>
+
 <!-- VIEW HOME -->
 <div id="view-home" class="flex-1 flex flex-col w-full max-w-md bg-slate-50 shadow-2xl overflow-hidden relative">
     <div class="flex-1 overflow-y-auto pb-32 relative z-0">
@@ -162,13 +194,16 @@
                             onerror="this.onerror=null; this.outerHTML='<div class=\'w-full h-full flex items-center justify-center\'><i data-lucide=\'radar\' class=\'w-8 h-8 text-white\'></i></div>'; lucide.createIcons();">
                     </div>
                     <div>
-                        <h1 class="text-2xl font-black text-white leading-tight drop-shadow-sm">Radar Vacinal Premium</h1>
-                        <p class="text-white/90 text-[10px] font-bold tracking-wider uppercase mb-1">Cobertura completa — nascimento até 19 anos</p>
+                        <h1 class="text-2xl font-black text-white leading-tight drop-shadow-sm">Radar Vacinal ACS</h1>
+                        <p class="text-white/90 text-[10px] font-bold tracking-wider uppercase mb-1">Apoio ao acompanhamento vacinal · nascimento até 19 anos</p>
                     </div>
                 </div>
+                <button onclick="app.showSobre()" title="Sobre e dados" aria-label="Sobre e dados" class="shrink-0 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center border border-white/25 transition-colors">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                </button>
             </div>
             <p class="text-white text-sm font-medium leading-relaxed mb-5 opacity-95">
-                Organize por apelido os pacientes da sua microárea. Cobertura completa do Calendário Nacional de Vacinação 2026.
+                Organize por apelido os pacientes da sua microárea. Apoio ao acompanhamento do Calendário Nacional de Vacinação (CNV 2026).
             </p>
             <div class="grid grid-cols-4 gap-2 text-center mb-5">
                 <div class="bg-white/20 backdrop-blur-sm rounded-xl p-2 border border-white/30 shadow-sm">
@@ -240,7 +275,15 @@
                 </div>
             </div>
 
-            <div class="btn-promo-pulse rounded-xl p-3 mb-4 flex items-center justify-between cursor-pointer transition-colors shadow-sm" onclick="window.open(KIT_ACS_URL, '_blank')">
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex gap-3 items-start shadow-sm">
+                <i data-lucide="stethoscope" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+                <div class="text-[11px] text-amber-900 leading-relaxed space-y-1">
+                    <p class="font-bold text-amber-800 text-xs">Aviso clínico</p>
+                    <p>Ferramenta de apoio à organização. Antes de orientar, registrar uma pendência ou considerar uma vacina em atraso, confirme a recomendação vigente e a situação vacinal com um profissional qualificado da sua equipe ou com o serviço de vacinação. O calendário pode receber atualizações do Ministério da Saúde.</p>
+                    <p class="text-amber-700/90">Base vacinal revisada em <span id="home-revisao">09/09/2026</span>, com referência nas publicações oficiais do Ministério da Saúde.</p>
+                </div>
+            </div>
+            <div role="button" tabindex="0" aria-label="Conhecer o SuperKit ACS" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.superkitClick('home');}" class="bg-white border border-slate-200 hover:border-[#78C7C7]/50 rounded-xl p-3 mb-4 flex items-center justify-between cursor-pointer transition-colors shadow-sm" onclick="app.superkitClick('home')">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-[#78C7C7]/10 rounded-lg flex items-center justify-center shrink-0 border border-[#78C7C7]/20">
                         <i data-lucide="briefcase" class="w-5 h-5 text-[#78C7C7]"></i>
@@ -332,7 +375,7 @@
             <div id="list-busca-ativa" class="space-y-4"></div>
             <div class="mt-8 pt-4 border-t border-slate-300 text-center text-[10px] text-slate-500 font-medium">
                 Ferramenta de apoio. Sempre confirme com caderneta e protocolo oficial.<br>
-                Gerado pelo Radar Vacinal Premium em <span id="roteiro-data"></span>
+                Gerado pelo Radar Vacinal ACS em <span id="roteiro-data"></span>
             </div>
         </div>
     </div>
@@ -394,7 +437,7 @@
                     <div class="w-14 h-14 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
                         <i data-lucide="check" class="w-7 h-7"></i>
                     </div>
-                    <p class="font-bold text-slate-800">Calendário em dia!</p>
+                    <p class="font-bold text-slate-800">Nenhuma pendência identificada</p>
                     <p class="text-xs text-slate-400 mt-1">Todas as doses registradas estão aplicadas.</p>
                 </div>
             </div>
@@ -421,7 +464,7 @@
             <div id="export-target" class="bg-white p-5 border border-slate-200 print-border shadow-sm min-h-[500px]">
                 <div class="border-b-2 border-slate-800 print-border pb-3 mb-4 flex justify-between items-start">
                     <div>
-                        <h2 class="text-sm font-black uppercase text-slate-900 leading-tight">Ficha de Acompanhamento Vacinal<br>para Visita Domiciliar — Premium</h2>
+                        <h2 class="text-sm font-black uppercase text-slate-900 leading-tight">Ficha de Acompanhamento Vacinal<br>para Visita Domiciliar</h2>
                         <p class="text-[9px] font-bold text-slate-500 mt-1 uppercase">Programa Nacional de Imunizações · CNV 2026</p>
                     </div>
                 </div>
@@ -462,29 +505,49 @@
     </div>
 </div>
 
+<script src="./data/vaccine-calendar-2026.js"></script>
+<script src="./js/engine.js"></script>
+<script src="./vendor/lucide.min.js"></script>
 <script>
-    const KIT_ACS_URL = "https://pay.hotmart.com/D106253909R?utm_source=radar_vacinal_premium&utm_medium=ferramenta&utm_campaign=superkit_acs";
-    const LOGIN_USER = "radar";
-    const LOGIN_PASS = "acs2026";
+    const KIT_ACS_URL = "https://superkit.rotinaacs.com.br/?utm_source=radar_vacinal&utm_medium=internal_referral&utm_campaign=superkit_acs&utm_content=home";
+    const SUPERKIT_BASE = "https://superkit.rotinaacs.com.br/";
+    const APP_VERSION = "2.0.0";
+    const GA4_MEASUREMENT_ID = ""; // Defina 'G-XXXXXXXXXX' para ativar o GA4. Vazio = analytics desligado (app funciona normalmente).
+    const RADAR_PUBLIC_URL = (location.protocol === 'https:') ? (location.origin + location.pathname.replace(/index\.html$/, '')) : 'https://leothaylor.github.io/radar-vacinal-premium/';
 
+    const RadarAnalytics = (function(){
+        let ready = false;
+        function init(){
+            if(!GA4_MEASUREMENT_ID) return; // sem ID -> sem analytics
+            try {
+                const sc = document.createElement('script'); sc.async = true;
+                sc.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_MEASUREMENT_ID;
+                document.head.appendChild(sc);
+                window.dataLayer = window.dataLayer || [];
+                window.gtag = function(){ window.dataLayer.push(arguments); };
+                window.gtag('js', new Date());
+                window.gtag('config', GA4_MEASUREMENT_ID, { anonymize_ip: true });
+                ready = true;
+            } catch(e){}
+        }
+        // Somente parâmetros funcionais. NUNCA PII ou dado clínico individual.
+        function track(event, params){
+            try { if(ready && window.gtag) window.gtag('event', event, params || {}); } catch(e){}
+        }
+        return { init: init, track: track };
+    })();
+
+    function ensureHtml2Pdf(){
+        return new Promise(function(resolve, reject){
+            if(window.html2pdf) return resolve(window.html2pdf);
+            var sc = document.createElement('script'); sc.src = './vendor/html2pdf.bundle.min.js';
+            sc.onload = function(){ resolve(window.html2pdf); };
+            sc.onerror = function(){ reject(new Error('html2pdf indisponível')); };
+            document.head.appendChild(sc);
+        });
+    }
     let currentEditProfileType = 'crianca';
     let newPatientProfileType = 'crianca';
-
-    function doLogin() {
-        const u = document.getElementById('login-user').value.trim();
-        const p = document.getElementById('login-pass').value;
-        const errEl = document.getElementById('login-error');
-        if (u === LOGIN_USER && p === LOGIN_PASS) {
-            document.getElementById('view-login').classList.add('hidden');
-            app.showHome();
-        } else {
-            errEl.classList.remove('hidden');
-            setTimeout(() => errEl.classList.add('hidden'), 3000);
-        }
-    }
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !document.getElementById('view-login').classList.contains('hidden')) doLogin();
-    });
 
     function setNewProfileType(type) {
         newPatientProfileType = type;
@@ -503,123 +566,20 @@
         const preloader = document.getElementById('preloader');
         const logo = document.getElementById('preloader-logo');
         const spinner = document.getElementById('neon-spinner');
-        setTimeout(() => { if(logo) logo.classList.add('active'); }, 800);
-        setTimeout(() => { if(spinner) spinner.classList.add('neon-fade-out'); }, 1800);
+        setTimeout(() => { if(logo) logo.classList.add('active'); }, 300);
+        setTimeout(() => { if(spinner) spinner.classList.add('neon-fade-out'); }, 900);
         setTimeout(() => {
             if(preloader) { preloader.style.opacity = '0'; preloader.style.visibility = 'hidden'; }
-            document.getElementById('view-login').classList.remove('hidden');
-            document.getElementById('view-login').classList.add('flex');
-        }, 2100);
-        setTimeout(() => { if(preloader) preloader.remove(); }, 2700);
+            if (typeof app !== 'undefined') app.showHome();
+        }, 1200);
+        setTimeout(() => { if(preloader) preloader.remove(); }, 1800);
     });
 
     lucide.createIcons();
+    RadarAnalytics.init();
 
-    const vaccineDatabase = [
-        { idGroup: "g0", ageMonths: 0, ageLabel: "Ao nascer", profileTypes: ['crianca'], doses: [
-            { id: "hepb_0", name: "Hepatite B", doseLabel: "1 dose (até 30 dias)" },
-            { id: "bcg_u", name: "BCG", doseLabel: "1 dose" }
-        ]},
-        { idGroup: "g2", ageMonths: 2, ageLabel: "2 meses", profileTypes: ['crianca'], doses: [
-            { id: "penta_1", name: "Penta", doseLabel: "1ª dose", indicator: "C2" },
-            { id: "vip_1", name: "VIP", doseLabel: "1ª dose", indicator: "C2" },
-            { id: "pneumo_1", name: "Pneumocócica 10-valente", doseLabel: "1ª dose", indicator: "C2" },
-            { id: "rota_1", name: "Rotavírus humano VORH", doseLabel: "1ª dose", rotaWindow: 1 }
-        ]},
-        { idGroup: "g3", ageMonths: 3, ageLabel: "3 meses", profileTypes: ['crianca'], doses: [
-            { id: "menin_1", name: "Meningocócica C", doseLabel: "1ª dose" }
-        ]},
-        { idGroup: "g4", ageMonths: 4, ageLabel: "4 meses", profileTypes: ['crianca'], doses: [
-            { id: "penta_2", name: "Penta", doseLabel: "2ª dose", indicator: "C2" },
-            { id: "vip_2", name: "VIP", doseLabel: "2ª dose", indicator: "C2" },
-            { id: "pneumo_2", name: "Pneumocócica 10-valente", doseLabel: "2ª dose", indicator: "C2" },
-            { id: "rota_2", name: "Rotavírus humano VORH", doseLabel: "2ª dose", rotaWindow: 2 }
-        ]},
-        { idGroup: "g5", ageMonths: 5, ageLabel: "5 meses", profileTypes: ['crianca'], doses: [
-            { id: "menin_2", name: "Meningocócica C", doseLabel: "2ª dose" }
-        ]},
-        { idGroup: "g6", ageMonths: 6, ageLabel: "6 meses", profileTypes: ['crianca'], doses: [
-            { id: "penta_3", name: "Penta", doseLabel: "3ª dose", indicator: "C2" },
-            { id: "vip_3", name: "VIP", doseLabel: "3ª dose", indicator: "C2" },
-            { id: "influ_1", name: "Influenza trivalente", doseLabel: "1ª dose" }
-        ]},
-        { idGroup: "g6covid", ageMonths: 6, ageLabel: "6 meses — Covid-19", profileTypes: ['crianca'], doses: [
-            { id: "covid_1", name: "Covid-19", doseLabel: "1ª dose (Pfizer/Moderna)" }
-        ]},
-        { idGroup: "g7", ageMonths: 7, ageLabel: "7 meses", profileTypes: ['crianca'], doses: [
-            { id: "covid_2", name: "Covid-19", doseLabel: "2ª dose" }
-        ]},
-        { idGroup: "g9", ageMonths: 9, ageLabel: "9 meses", profileTypes: ['crianca'], doses: [
-            { id: "fa_1", name: "Febre Amarela", doseLabel: "1ª dose" },
-            { id: "covid_3", name: "Covid-19", doseLabel: "3ª dose (Pfizer ou imunocomprometidos)" }
-        ]},
-        { idGroup: "g12", ageMonths: 12, ageLabel: "12 meses", profileTypes: ['crianca'], doses: [
-            { id: "pneumo_ref", name: "Pneumocócica 10-valente", doseLabel: "reforço", indicator: "C2" },
-            { id: "menacwy_ref", name: "Meningocócica ACWY", doseLabel: "reforço (CNV 2026)" },
-            { id: "scr_1", name: "Tríplice Viral SCR", doseLabel: "1ª dose", indicator: "C2" }
-        ]},
-        { idGroup: "g15", ageMonths: 15, ageLabel: "15 meses", profileTypes: ['crianca'], doses: [
-            { id: "dtp_1", name: "DTP", doseLabel: "1º reforço" },
-            { id: "vip_ref", name: "VIP", doseLabel: "reforço" },
-            { id: "scr_2", name: "Tríplice Viral SCR", doseLabel: "2ª dose / Tetraviral", indicator: "C2" },
-            { id: "vari_1", name: "Varicela", doseLabel: "1ª dose" },
-            { id: "hepa_u", name: "Hepatite A", doseLabel: "1 dose única" }
-        ]},
-        { idGroup: "g48", ageMonths: 48, ageLabel: "4 anos", profileTypes: ['crianca'], doses: [
-            { id: "dtp_2", name: "DTP", doseLabel: "2º reforço" },
-            { id: "fa_ref", name: "Febre Amarela", doseLabel: "reforço" },
-            { id: "vari_2", name: "Varicela", doseLabel: "2ª dose" }
-        ]},
-        { idGroup: "g60", ageMonths: 60, ageLabel: "5 anos / Resgate", profileTypes: ['crianca'], doses: [
-            { id: "scr_res5", name: "Tríplice Viral SCR", doseLabel: "verificar 2 doses" },
-            { id: "hepb_res5", name: "Hepatite B", doseLabel: "verificar 3 doses" },
-            { id: "fa_res5", name: "Febre Amarela", doseLabel: "avaliar histórico" },
-            { id: "covid_res5", name: "Covid-19", doseLabel: "verificar" }
-        ]},
-        { idGroup: "g108", ageMonths: 108, ageLabel: "9 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u9", name: "HPV quadrivalente", doseLabel: "dose única (CNV 2026)", indicator: "C7" }
-        ]},
-        { idGroup: "g120", ageMonths: 120, ageLabel: "10 anos", profileTypes: ['crianca'], doses: [
-            { id: "dengue_1", name: "Dengue/Qdenga", doseLabel: "1ª dose" }
-        ]},
-        { idGroup: "g132", ageMonths: 132, ageLabel: "11 anos", profileTypes: ['crianca'], doses: [
-            { id: "menacwy_11", name: "Meningocócica ACWY", doseLabel: "dose única / reforço 11–14 anos" },
-            { id: "dengue_2", name: "Dengue/Qdenga", doseLabel: "2ª dose (3 meses após 1ª)" }
-        ]},
-        { idGroup: "g144", ageMonths: 144, ageLabel: "12 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u12", name: "HPV", doseLabel: "dose única (se não vacinou aos 9 anos)", indicator: "C7" },
-            { id: "dt_12", name: "dT Dupla Adulto", doseLabel: "atualizar esquema" }
-        ]},
-        { idGroup: "g156", ageMonths: 156, ageLabel: "13 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u13", name: "HPV", doseLabel: "resgate dose única", indicator: "C7" },
-            { id: "scr_13", name: "Tríplice Viral SCR", doseLabel: "verificar 2 doses" }
-        ]},
-        { idGroup: "g168", ageMonths: 168, ageLabel: "14 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u14", name: "HPV", doseLabel: "último ano de rotina PNI", indicator: "C7" },
-            { id: "menacwy_14", name: "Meningocócica ACWY", doseLabel: "verificar" },
-            { id: "hepb_14", name: "Hepatite B", doseLabel: "verificar 3 doses" }
-        ]},
-        { idGroup: "g180", ageMonths: 180, ageLabel: "15–19 anos / Resgate", profileTypes: ['crianca'], doses: [
-            { id: "hpv_res", name: "HPV", doseLabel: "resgate dose única (campanha 2026)", indicator: "C7" },
-            { id: "dt_res", name: "dT", doseLabel: "reforço ou esquema" },
-            { id: "scr_res", name: "Tríplice Viral SCR", doseLabel: "verificar histórico" },
-            { id: "hepb_res", name: "Hepatite B", doseLabel: "verificar" }
-        ]},
-        { idGroup: "gestante", ageMonths: 999, ageLabel: "Gestante", profileTypes: ['gestante'], doses: [
-            { id: "dtpa_gest", name: "dTpa", doseLabel: "1 dose a cada gestação" },
-            { id: "hepb_gest", name: "Hepatite B", doseLabel: "verificar esquema" },
-            { id: "influ_gest", name: "Influenza", doseLabel: "1 dose anual" },
-            { id: "covid_gest", name: "Covid-19", doseLabel: "reforço conforme campanha" }
-        ]},
-        { idGroup: "trabsaude", ageMonths: 998, ageLabel: "Trabalhador de Saúde", profileTypes: ['trabsaude'], doses: [
-            { id: "dtpa_trab", name: "dTpa", doseLabel: "1 dose (mesmo que tenha tomado dT)" },
-            { id: "dengue_trab", name: "Dengue/Qdenga", doseLabel: "2 doses (APS até 59 anos)" },
-            { id: "influ_trab", name: "Influenza", doseLabel: "1 dose anual" },
-            { id: "covid_trab", name: "Covid-19", doseLabel: "reforço semestral" },
-            { id: "scr_trab", name: "SCR", doseLabel: "verificar 2 doses" },
-            { id: "hepb_trab", name: "Hepatite B", doseLabel: "verificar esquema completo" }
-        ]}
-    ];
+    const vaccineDatabase = window.VACCINE_CALENDAR.groups;
+    const VACCINE_META = window.VACCINE_CALENDAR.meta;
 
     const dictDatabase = [
         { vac: "BCG", desc: "Formas graves de tuberculose." },
@@ -627,8 +587,9 @@
         { vac: "Hepatite A", desc: "Infecção do fígado (Hepatite A)." },
         { vac: "Penta", desc: "Difteria, Tétano, Coqueluche, Hepatite B e infecções por Hib. Impacta indicador C2 (3 doses)." },
         { vac: "VIP", desc: "Poliomielite injetável (substituiu VOP/gotinha — CNV 2026). Impacta indicador C2 (3 doses)." },
-        { vac: "Pneumocócica 10-valente", desc: "Pneumonia, otite e meningite por pneumococo. Impacta indicador C2 (2 doses primárias)." },
-        { vac: "Rotavírus humano VORH", desc: "Diarreia grave por rotavírus. ⚠️ Janela rígida: D1 entre 1m15d e 3m29d; D2 até 7m29d. Fora da janela, a dose é contraindicada." },
+        { vac: "Pneumocócica 20-valente (VPC20)", desc: "Pneumonia, otite e meningite por pneumococo. Rotina 2026 (transição): 1ª dose aos 2 meses e reforço aos 12 meses com VPC20. Impacta indicador C2." },
+        { vac: "Pneumocócica 10-valente (VPC10)", desc: "Usada na 2ª dose (4 meses) durante a transição para a VPC20 (IN 2026). Impacta indicador C2." },
+        { vac: "Rotavírus humano (VRH)", desc: "Diarreia grave por rotavírus. Janela (IN 2026): 1ª dose de 1m15d até 11m29d; 2ª dose de 3m15d até 23m29d; intervalo mínimo de 60 dias. Fora da janela, a oportunidade é perdida." },
         { vac: "Meningocócica C", desc: "Meningite sorogrupo C. Esquema primário: 3 e 5 meses." },
         { vac: "Meningocócica ACWY", desc: "Meningite sorogrupos A, C, W, Y. Reforço aos 12 meses (substituiu Men C — CNV 2026); dose única aos 11–14 anos." },
         { vac: "Influenza trivalente", desc: "Gripe. Aplicada a partir de 6 meses, anualmente." },
@@ -637,9 +598,9 @@
         { vac: "Tríplice Viral SCR", desc: "Sarampo, Caxumba e Rubéola. Impacta indicador C2 (D1 aos 12m e D2 aos 15m)." },
         { vac: "DTP", desc: "Difteria, Tétano e Coqueluche (reforços)." },
         { vac: "Varicela", desc: "Catapora." },
-        { vac: "HPV quadrivalente", desc: "Papilomavírus humano. Dose única para 9–14 anos (CNV 2026). Impacta indicador C7." },
-        { vac: "HPV", desc: "Papilomavírus humano. Dose única (resgate ou rotina). Impacta indicador C7." },
-        { vac: "Dengue/Qdenga", desc: "Dengue (vacina tetravalente viva atenuada). 2 doses com intervalo de 3 meses. Indicada a partir dos 10 anos para população geral; trabalhadores de saúde da APS até 59 anos." },
+        { vac: "HPV4", desc: "Papilomavírus humano. Dose ÚNICA na janela de 9 a 14 anos, 11 meses e 29 dias (rotina). Resgate 15–19 anos, dose única. Impacta indicador C7." },
+        { vac: "VSR (VVSR)", desc: "Vírus sincicial respiratório. Gestante: dose única a partir da 28ª semana, em cada gestação, protegendo o bebê nos primeiros meses (IN 2026)." },
+        { vac: "Dengue (DNG4)", desc: "Dengue (tetravalente atenuada). Rotina: 2 doses, população de 10 a 14 anos, 11 meses e 29 dias, intervalo de 3 meses entre as doses (IN 2026). Uso em trabalhador de saúde depende de informe específico — confirmar com a equipe." },
         { vac: "dT Dupla Adulto", desc: "Difteria e Tétano. Reforço a cada 10 anos para adultos." },
         { vac: "dTpa", desc: "Difteria, Tétano e Coqueluche acelular. Indicada para gestantes (1 dose a cada gestação) e trabalhadores de saúde." },
         { vac: "SCR", desc: "Sarampo, Caxumba e Rubéola (adultos/trabalhadores). Verificar 2 doses." }
@@ -796,8 +757,7 @@
             return Math.floor((now - b) / (1000*60*60*24));
         },
         getTotalDoses(profileType) {
-            const pt = profileType || 'crianca';
-            return vaccineDatabase.filter(g => g.profileTypes.includes(pt)).reduce((acc, g) => acc + g.doses.length, 0);
+            return RadarEngine.getTotalDoses(profileType || 'crianca', window.VACCINE_CALENDAR);
         },
         isRotaWindowClosed(rotaWindow, birthDateStr) {
             const days = this.getAgeInDays(birthDateStr);
@@ -807,35 +767,7 @@
         },
 
         analisarCalendario(child) {
-            const analise = [];
-            let hasDelayed = false; let hasAlert = false;
-            const childApplied = child.applied || [];
-            const pt = child.profileType || 'crianca';
-            const isSpecial = pt === 'gestante' || pt === 'trabsaude';
-
-            vaccineDatabase.filter(g => g.profileTypes.includes(pt)).forEach(group => {
-                const isSpecialGroup = group.ageMonths >= 900;
-                const tDate = isSpecialGroup ? null : this.addMonths(child.birthDate, group.ageMonths);
-                const daysDiff = isSpecialGroup ? 999 : this.getDaysDiff(tDate);
-                const tDateStr = isSpecialGroup ? 'Conforme indicação' : this.formatDate(tDate);
-
-                group.doses.forEach(dose => {
-                    let status;
-                    if(childApplied.includes(dose.id)) {
-                        status = 'applied';
-                    } else if(isSpecialGroup) {
-                        status = 'future';
-                    } else if(dose.rotaWindow && this.isRotaWindowClosed(dose.rotaWindow, child.birthDate)) {
-                        status = childApplied.includes(dose.id) ? 'applied' : 'window_closed';
-                    } else {
-                        status = daysDiff < 0 ? 'delayed' : (daysDiff <= 30 ? 'alert' : 'future');
-                    }
-                    if(status === 'delayed') hasDelayed = true;
-                    else if(status === 'alert') hasAlert = true;
-                    analise.push({ ...dose, idGroup: group.idGroup, groupLabel: group.ageLabel, tDateStr, daysDiff, status });
-                });
-            });
-            return { doses: analise, generalStatus: hasDelayed ? 'danger' : (hasAlert ? 'alert' : 'ok') };
+            return RadarEngine.analisarCalendario(child, window.VACCINE_CALENDAR, new Date());
         },
 
         hideAllViews() {
@@ -869,6 +801,7 @@
             document.getElementById('view-busca-ativa').classList.remove('hidden');
             document.getElementById('roteiro-data').textContent = this.formatDate(new Date());
             this.renderBuscaAtiva();
+            if(window.RadarAnalytics) RadarAnalytics.track('busca_ativa_generated');
         },
 
         setTab(tabName) {
@@ -904,6 +837,7 @@
             if(!nameInp || !dateInp) return;
             const newChild = { id: 'c_' + Date.now(), name: nameInp, birthDate: dateInp, profileType: newPatientProfileType, applied: [] };
             this.state.children.push(newChild);
+            if(window.RadarAnalytics) RadarAnalytics.track('patient_added', { profile: newChild.profileType });
             this.saveData();
             this.state.currentFilter = 'all';
             this.state.searchQuery = '';
@@ -925,6 +859,7 @@
             if(!child.applied) child.applied = [];
             const idx = child.applied.indexOf(doseId);
             idx === -1 ? child.applied.push(doseId) : child.applied.splice(idx, 1);
+            if(window.RadarAnalytics) RadarAnalytics.track('dose_updated');
             this.saveData(); this.renderDetail();
         },
 
@@ -982,7 +917,7 @@
                         </div>
                     </div>
                     <div class="px-2 border-l border-slate-50 flex items-center justify-center h-full">
-                        <button onclick="app.deleteChild('${c.id}', event)" class="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors rounded-xl"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        <button onclick="app.deleteChild('${c.id}', event)" aria-label="Remover paciente" title="Remover paciente" class="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors rounded-xl"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                     </div>
                 </div>`;
             }).join('');
@@ -992,7 +927,7 @@
         renderBuscaAtiva() {
             let dataList = this.state.children.map(child => {
                 const res = this.analisarCalendario(child);
-                return { ...child, doses: res.doses.filter(d => d.status === 'delayed'), ageText: this.getAgeText(child.birthDate) };
+                return { ...child, doses: RadarEngine.pendenciasBuscaAtiva(res), ageText: this.getAgeText(child.birthDate) };
             }).filter(c => c.doses.length > 0);
 
             dataList.sort((a,b) => {
@@ -1007,7 +942,7 @@
                 listEl.innerHTML = `
                     <div class="text-center py-10 bg-emerald-50 rounded-xl border border-emerald-100">
                         <div class="w-12 h-12 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="check-circle" class="w-6 h-6"></i></div>
-                        <p class="font-bold text-emerald-700">Parabéns! Sua microárea está zerada de atrasos vacinais.</p>
+                        <p class="font-bold text-emerald-700">Nenhuma pendência identificada nos registros cadastrados.</p>
                     </div>`;
                 lucide.createIcons(); return;
             }
@@ -1085,16 +1020,24 @@
 
                 const atrasadas = cal.filter(v => v.status==='delayed');
                 const janelasRota = cal.filter(v => v.status==='window_closed');
-                const alerta = cal.filter(v => v.status==='alert').sort((a,b)=>(a.daysDiff||0)-(b.daysDiff||0));
-                const futuras = cal.filter(v => v.status==='future').sort((a,b)=>(a.daysDiff||0)-(b.daysDiff||0)).slice(0,5);
+                const alerta = cal.filter(v => v.status==='alert' || v.status==='eligible' || v.status==='relative_pending').sort((a,b)=>((a.daysDiff==null?900:a.daysDiff))-((b.daysDiff==null?900:b.daysDiff)));
+                const futuras = cal.filter(v => v.status==='future' || v.status==='history').sort((a,b)=>((a.daysDiff==null?900:a.daysDiff))-((b.daysDiff==null?900:b.daysDiff))).slice(0,8);
 
                 const renderCard = (v, theme) => {
                     let bord=theme==='danger'?'border-red-200':(theme==='alert'?'border-amber-200':'border-slate-100');
                     let iconBg=theme==='danger'?'bg-red-50 text-red-500':(theme==='alert'?'bg-amber-50 text-amber-500':'bg-slate-50 text-slate-400');
                     let subTxt=theme==='danger'?'text-red-500 font-bold':(theme==='alert'?'text-amber-500':'text-slate-400');
-                    let info=theme==='danger'?'Atrasada':((v.daysDiff===0||v.daysDiff<0)?'Hoje':(v.daysDiff>=900?'Conforme indicação':`Em ${v.daysDiff}d`));
+                    let info='';
+                    if(v.status==='delayed') info='Atrasada';
+                    else if(v.status==='eligible') info='Janela aberta';
+                    else if(v.status==='relative_pending') info='Confirmar caderneta';
+                    else if(v.status==='window_closed') info='Janela encerrada';
+                    else if(v.status==='history') info='Conforme histórico';
+                    else if(v.daysDiff!=null && v.daysDiff<=0) info='Hoje';
+                    else if(v.daysDiff!=null && v.daysDiff>=900) info='Conforme indicação';
+                    else if(v.daysDiff!=null) info='Em '+v.daysDiff+'d';
                     const badge = this.renderIndicatorBadge(v);
-                    const rotaWarn = (v.rotaWindow && theme === 'danger') ? `<span class="badge-rota-warn">⚠ Janela fechada</span>` : '';
+                    const rotaWarn = (v.status==='window_closed') ? `<span class="badge-rota-warn">⚠ Janela fechada</span>` : '';
                     return `
                     <div class="bg-white rounded-xl p-3 border ${bord} shadow-sm flex justify-between items-center">
                         <div class="flex items-center gap-3">
@@ -1129,7 +1072,7 @@
                         const warnEl = document.createElement('div');
                         warnEl.id = 'rota-window-warn';
                         warnEl.className = 'bg-amber-50 border border-amber-300 rounded-xl p-3 mt-2 text-xs text-amber-800 font-medium';
-                        warnEl.innerHTML = `⚠️ <strong>Janela do Rotavírus encerrada:</strong> ${janelasRota.map(v=>v.name+' ('+v.doseLabel+')').join(', ')} — dose contraindicada por faixa etária. Não aplicar.`;
+                        warnEl.innerHTML = `⚠️ <strong>Janela de oportunidade encerrada:</strong> ${janelasRota.map(v=>v.name+' ('+v.doseLabel+')').join(', ')} — oportunidade encerrada por faixa etária. Verificar com a equipe.`;
                         document.getElementById('list-delayed').parentNode.appendChild(warnEl);
                     }
                 }
@@ -1152,6 +1095,9 @@
                                 let txtColor='text-slate-800'; let subColor='text-slate-500'; let boxClass='border-slate-200 text-transparent bg-slate-50';
                                 if(v.status==='applied') { txtColor='text-slate-400 line-through'; subColor='text-slate-300'; boxClass='border-emerald-500 bg-emerald-500 text-white'; }
                                 else if(v.status==='delayed') { txtColor='text-red-600'; subColor='text-red-500'; }
+                                else if(v.status==='eligible') { txtColor='text-amber-700'; subColor='text-amber-500'; }
+                                else if(v.status==='relative_pending') { txtColor='text-amber-700'; subColor='text-amber-500'; }
+                                else if(v.status==='history') { txtColor='text-slate-500'; subColor='text-slate-400'; }
                                 else if(windowClosed) { txtColor='text-amber-700'; subColor='text-amber-500'; }
                                 const badge = this.renderIndicatorBadge(v);
                                 const rotaTag = windowClosed ? `<span class="badge-rota-warn">⚠ janela fechada</span>` : '';
@@ -1204,7 +1150,10 @@
             try {
                 viewEl.classList.add('exporting');
                 await new Promise(r => setTimeout(r, 400));
+                await ensureHtml2Pdf();
                 await html2pdf().set({ margin: 10, filename: `Ficha_${(child&&child.name||'Paciente').replace(/ /g,'_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                if(window.RadarAnalytics) RadarAnalytics.track('pdf_exported', { type: 'ficha' });
+                app.maybeShowSuperkitPosValor();
             } catch(e) { alert("Erro ao gerar arquivo."); } finally { viewEl.classList.remove('exporting'); }
         },
 
@@ -1214,12 +1163,156 @@
             try {
                 viewEl.classList.add('exporting');
                 await new Promise(r => setTimeout(r, 400));
-                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa_Premium.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                await ensureHtml2Pdf();
+                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                if(window.RadarAnalytics) RadarAnalytics.track('pdf_exported', { type: 'busca_ativa' });
+                app.maybeShowSuperkitPosValor();
             } catch(e) { alert("Erro ao gerar arquivo."); } finally { viewEl.classList.remove('exporting'); }
         }
     };
 
+    function radarFmtDateBR(iso){ if(!iso) return '--'; const p=String(iso).split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : iso; }
+
+    app.showSobre = function(){
+        const meta = VACCINE_META || {};
+        document.getElementById('sobre-app-version').textContent = APP_VERSION;
+        document.getElementById('sobre-data-version').textContent = meta.vaccineDataVersion || '--';
+        document.getElementById('sobre-revisao').textContent = radarFmtDateBR(meta.revisionDate);
+        document.getElementById('sobre-revisao-inline').textContent = radarFmtDateBR(meta.revisionDate);
+        const src = (meta.sourceDocuments||[]).map(d => '<li><a href="'+d.url+'" target="_blank" rel="noopener" class="text-teal-700 underline break-words">'+d.title+'</a></li>').join('');
+        document.getElementById('sobre-fontes').innerHTML = src || '<li>&mdash;</li>';
+        const m = document.getElementById('modal-sobre'); m.classList.remove('hidden'); m.classList.add('flex');
+        if(window.lucide) lucide.createIcons();
+    };
+    app.hideSobre = function(){ const m=document.getElementById('modal-sobre'); m.classList.add('hidden'); m.classList.remove('flex'); };
+
+    app.exportBackup = function(){
+        try {
+            const payload = { _type:'radar-vacinal-acs-backup', backupVersion:1, exportedAt:new Date().toISOString(),
+                appVersion:APP_VERSION, schemaVersion:(VACCINE_META||{}).schemaVersion||2,
+                vaccineDataVersion:(VACCINE_META||{}).vaccineDataVersion||null,
+                data:{ children: app.state.children, profile: app.state.profile } };
+            const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = 'radar-acs-backup-' + new Date().toISOString().slice(0,10) + '.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+            if(window.RadarAnalytics) RadarAnalytics.track('backup_exported');
+        } catch(e){ alert('Não foi possível gerar o backup neste dispositivo.'); }
+    };
+    app.triggerImport = function(){ document.getElementById('sobre-import-input').click(); };
+    app.importBackup = function(input){
+        const file = input.files && input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev){
+            let parsed;
+            try { parsed = JSON.parse(ev.target.result); }
+            catch(e){ alert('Arquivo inválido: não é um JSON de backup válido.'); input.value=''; return; }
+            if(!parsed || parsed._type !== 'radar-vacinal-acs-backup' || !parsed.data || !Array.isArray(parsed.data.children)){
+                alert('Arquivo inválido: não parece um backup do Radar Vacinal ACS.'); input.value=''; return;
+            }
+            if(!confirm('Restaurar ' + parsed.data.children.length + ' paciente(s)? Isso substituirá os dados atuais neste dispositivo.')){ input.value=''; return; }
+            try {
+                app.state.children = RadarEngine.migrateAll(parsed.data.children, window.VACCINE_CALENDAR);
+                const p = parsed.data.profile;
+                app.state.profile = (p && typeof p==='object') ? { name:p.name||'', equipe:p.equipe||'', microarea:p.microarea||'' } : app.state.profile;
+                app.saveData(); localStorage.setItem('radarPremiumProfile', JSON.stringify(app.state.profile));
+                app.hideSobre(); app.showHome(); app.applyProfileToDom(); app.initProfileLock();
+                alert('Backup restaurado com sucesso.');
+            } catch(e){ alert('Falha ao restaurar o backup.'); }
+            input.value='';
+        };
+        reader.onerror = function(){ alert('Não foi possível ler o arquivo.'); input.value=''; };
+        reader.readAsText(file);
+    };
+    app.clearAllData = function(){
+        if(!confirm('Apagar TODOS os pacientes e dados deste dispositivo? Esta ação não pode ser desfeita. Considere exportar um backup antes.')) return;
+        if(!confirm('Confirmar definitivamente a exclusão de todos os dados?')) return;
+        try {
+            localStorage.removeItem('radarPremiumV1'); localStorage.removeItem('radarPremiumProfile');
+            app.state.children = []; app.state.profile = { name:'', equipe:'', microarea:'' };
+            app.saveData(); localStorage.setItem('radarPremiumProfile', JSON.stringify(app.state.profile));
+            app.hideSobre(); app.showHome(); app.applyProfileToDom(); app.initProfileLock();
+        } catch(e){ alert('Não foi possível limpar os dados.'); }
+    };
+
+    app.superkitClick = function(placement){
+        const pl = placement || 'home';
+        const url = SUPERKIT_BASE + '?utm_source=radar_vacinal&utm_medium=internal_referral&utm_campaign=superkit_acs&utm_content=' + encodeURIComponent(pl);
+        RadarAnalytics.track('superkit_click', { placement: pl });
+        window.open(url, '_blank', 'noopener');
+    };
+    app.shareRadar = async function(){
+        const shareData = { title: 'Radar Vacinal ACS', text: 'Ferramenta gratuita de apoio ao acompanhamento vacinal para ACS.', url: RADAR_PUBLIC_URL };
+        RadarAnalytics.track('share_click');
+        try {
+            if(navigator.share){ await navigator.share(shareData); }
+            else if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(RADAR_PUBLIC_URL); app.toast('Link copiado para a área de transferência.'); }
+            else { window.prompt('Copie o link do Radar:', RADAR_PUBLIC_URL); }
+        } catch(e){ /* usuário cancelou o compartilhamento */ }
+    };
+    app.toast = function(message, actionLabel, actionFn, duration){
+        const wrap = document.getElementById('radar-toast'); if(!wrap) return;
+        wrap.innerHTML = '';
+        const msg = document.createElement('div'); msg.className = 'flex-1 text-[12px] text-slate-700 leading-snug'; msg.innerHTML = message; wrap.appendChild(msg);
+        if(actionLabel && actionFn){
+            const btn = document.createElement('button'); btn.className = 'shrink-0 bg-[#78C7C7] text-white text-[11px] font-bold px-3 py-2 rounded-lg';
+            btn.textContent = actionLabel; btn.onclick = function(){ try{ actionFn(); } finally { app.dismissToast(); } }; wrap.appendChild(btn);
+        }
+        const x = document.createElement('button'); x.className = 'shrink-0 text-slate-400 hover:text-slate-600 p-1 text-lg leading-none'; x.setAttribute('aria-label','Fechar'); x.innerHTML = '&times;';
+        x.onclick = app.dismissToast; wrap.appendChild(x);
+        wrap.classList.remove('hidden'); wrap.classList.add('flex');
+        clearTimeout(app._toastT); app._toastT = setTimeout(app.dismissToast, duration || 6000);
+    };
+    app.dismissToast = function(){ const w = document.getElementById('radar-toast'); if(w){ w.classList.add('hidden'); w.classList.remove('flex'); } };
+    app.maybeShowSuperkitPosValor = function(){
+        try {
+            const last = parseInt(localStorage.getItem('radarSkPosValorTs') || '0', 10);
+            if(Date.now() - last < 24 * 3600 * 1000) return; // frequency cap: no máximo 1x/24h
+            localStorage.setItem('radarSkPosValorTs', String(Date.now()));
+        } catch(e){ return; }
+        app.toast('<strong>Organizando outras rotinas do território?</strong><br>Conheça o SuperKit ACS.', 'Ver', function(){ app.superkitClick('after_pdf'); }, 9000);
+    };
+
+    try { const rv=(VACCINE_META||{}).revisionDate; const el=document.getElementById('home-revisao'); if(el&&rv){ el.textContent = radarFmtDateBR(rv); } } catch(e){}
+
+    // ---- PWA: service worker, atualização, instalação, offline ----
+    app._swReg = null; app._deferredInstall = null;
+    app.applyUpdate = function(){ try { if(app._swReg && app._swReg.waiting) app._swReg.waiting.postMessage('SKIP_WAITING'); } catch(e){} };
+    app.promptInstall = async function(){
+        if(app._deferredInstall){
+            app._deferredInstall.prompt();
+            try { const c = await app._deferredInstall.userChoice; if(c && c.outcome === 'accepted') RadarAnalytics.track('app_installed'); } catch(e){}
+            app._deferredInstall = null;
+        } else {
+            alert('Para instalar:\n• Android/Chrome: menu (⋮) e "Adicionar à tela inicial".\n• iPhone/Safari: Compartilhar e "Adicionar à Tela de Início".');
+        }
+    };
+    window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); app._deferredInstall = e; RadarAnalytics.track('install_prompt'); });
+    window.addEventListener('appinstalled', function(){ RadarAnalytics.track('app_installed'); });
+    window.addEventListener('offline', function(){ if(app.toast) app.toast('Você está offline. O Radar continua funcionando com os dados deste dispositivo.'); });
+    if('serviceWorker' in navigator){
+        window.addEventListener('load', function(){
+            navigator.serviceWorker.register('./service-worker.js').then(function(reg){
+                app._swReg = reg;
+                function notifyUpdate(){ if(app.toast) app.toast('Nova versão disponível.', 'Atualizar', app.applyUpdate, 15000); }
+                if(reg.waiting && navigator.serviceWorker.controller) notifyUpdate();
+                reg.addEventListener('updatefound', function(){
+                    var w = reg.installing; if(!w) return;
+                    w.addEventListener('statechange', function(){ if(w.state === 'installed' && navigator.serviceWorker.controller) notifyUpdate(); });
+                });
+            }).catch(function(){});
+            var refreshed = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function(){ if(refreshed) return; refreshed = true; RadarAnalytics.track('update_applied'); location.reload(); });
+        });
+    }
+
     document.getElementById('addForm').addEventListener('submit', (e) => app.addChild(e));
+    try {
+        app.state.children = RadarEngine.migrateAll(app.state.children, window.VACCINE_CALENDAR);
+        app.saveData();
+        localStorage.setItem('radarSchemaVersion', String((window.VACCINE_CALENDAR.meta || {}).schemaVersion || 2));
+    } catch(e) { console.error('Falha na migração de dados', e); }
     app.applyProfileToDom();
     app.initProfileLock();
 </script>

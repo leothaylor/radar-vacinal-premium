@@ -1,0 +1,17 @@
+{
+  "name": "Radar Vacinal ACS",
+  "short_name": "Radar ACS",
+  "description": "Ferramenta gratuita de apoio ao acompanhamento do Calendário Nacional de Vacinação para Agentes Comunitários de Saúde. Local, offline e sem cadastro.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#78C7C7",
+  "theme_color": "#78C7C7",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
