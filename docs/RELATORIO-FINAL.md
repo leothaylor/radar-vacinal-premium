@@ -1,92 +1,112 @@
 # Relatório Final — Radar Vacinal ACS V2
 
-**Branch:** `feat/radar-ampliado-v2` · **Baseline:** `c13f1a5` · **Data:** 2026-09-09/10
+**Branch:** `feat/radar-ampliado-v2` · **Baseline:** `c13f1a5` · **Revisão final:** 2026-09-10
 
 ## 1. Baseline (estado inicial)
-App single-file (`index.html`, 1227 linhas): login hardcoded (`radar`/`acs2026`), marca
-"Premium", promo do SuperKit apontando para o **checkout Hotmart**, base vacinal misturada
-ao HTML, sem PWA/offline/backup, dependente de CDNs, `localStorage` sem `schemaVersion`.
+App single-file (`index.html`): login hardcoded (`radar`/`acs2026`), marca "Premium", promo do SuperKit apontando para checkout Hotmart, base vacinal misturada à UI, sem PWA/offline/backup, dependente de CDNs e `localStorage` sem versionamento explícito.
 
 ## 2. Auditorias realizadas
-- **Clínica** (`docs/auditoria-vacinal-2026.md`) — confronto regra-a-regra com IN 2026/PNI.
-- **UI** (`docs/auditoria-ui-atual.md`) — classificação tela a tela.
-- **Motor** (`docs/comportamento-motor-atual.md`) — congelamento do comportamento.
+- **Clínica inicial:** `docs/auditoria-vacinal-2026.md`.
+- **Revisão clínica final:** `docs/revisao-final-clinica-2026-09-10.md`.
+- **UI:** `docs/auditoria-ui-atual.md`.
+- **Motor:** `docs/comportamento-motor-atual.md`.
 
-## 3. Mudanças executadas
-### Clínicas (ALTA confiança, com fonte)
-Pneumo VPC20/VPC10; VIP 2º reforço 4a; HPV janela única; Dengue D2 relativa; MenACWY 11–14
-janela única; VSR gestante; resgates como `history_check`. Ver CHANGELOG.
+## 3. Mudanças clínicas consolidadas
+- Pneumocócica em transição 2026: VPC20 (2m), VPC10 (4m), VPC20 reforço (12m).
+- VIP: 2º reforço aos 4 anos incluído.
+- HPV: janela única 9–14a11m29d, sem duplicação anual; resgate tratado por histórico.
+- Dengue adolescente: D2 relativa à D1, sem data fictícia.
+- MenACWY 11–14: janela única.
+- Rotavírus: janelas oficiais preservadas; D2 depende da D1 e, sem data da D1, vira `relative_pending`.
+- Resgates: `history_check`, nunca atraso automático.
+- Influenza infantil: microcopy oficial de vacinação anual (6m a <6a) e 2 doses com 30 dias na primeira vacinação; tratada conservadoramente por histórico/temporada.
+- Covid infantil: esquema tratado por histórico/fabricante; 3ª dose não vira atraso universal.
+- Gestante: Hepatite B, dT, influenza, Covid-19, febre amarela excepcional, dTpa ≥20 semanas e VVSR ≥28 semanas; sem cálculo fictício de idade gestacional.
+- Trabalhador da saúde: dT separada de dTpa; dTpa condicional a atuação com recém-nascidos; SCR, varicela, influenza e Covid por histórico/estratégia; dengue Butantan em dose única para trabalhador da APS 15–59a11m29d, modelada condicionalmente porque o perfil do app é genérico.
 
-### Correções da revisão externa (4)
-1. Migração **preserva** dados sem equivalente em `legacyApplied` (nunca descarta).
-2. Removida conversão `dt_12 → dt_14` (não equivalentes); `dt_12` vira legado.
-3. Doses relativas: sem data da dose anterior, estado conservador `relative_pending`
-   ("confirme a data na caderneta") — não afirma elegibilidade.
-4. Rotavírus D2 respeita dependência da D1 além da janela etária.
+## 4. Segurança de inferência
+- Perfis `gestante` e `trabsaude` nunca caem em `generalStatus = ok` apenas por ausência de dado: retornam `alert` + `requiresReview = true`.
+- A UI existente traduz isso como **Atenção**, evitando o falso “Em Dia”.
+- Doses dependentes de data anterior sem data armazenada usam `relative_pending` e pedem confirmação na caderneta.
+- `history_check` não entra na Busca Ativa automática.
 
-### Produto / plataforma
-Remoção de login/Premium; linguagem delimitada; "Sobre e dados"; backup/restauração/limpeza;
-aviso clínico + data de revisão; PWA + offline + atualização segura; assets locais; GA4 sem
-PII; compartilhamento; Open Graph; SuperKit (home + pós-valor, frequency cap, UTMs);
-acessibilidade; performance.
+## 5. Preservação de dados
+- Migração preserva IDs sem equivalente em `legacyApplied`.
+- `dt_12` não é convertido em `dt_14`.
+- IDs semanticamente equivalentes continuam remapeados/deduplicados.
+- Chaves antigas `radarPremiumV1` / `radarPremiumProfile` permanecem por compatibilidade.
 
-## 4. Mudanças NÃO executadas (e motivo)
-- **Itens clínicos ambíguos** (dengue trabalhador, varicela trabalhador, influenza 2 doses
-  <9a, periodicidade Covid): sem fonte de rotina inequívoca → **REVISÃO HUMANA**, congelados.
-- **NT 52/2026 e Guia VPC20**: transições dose-a-dose de estratégias especiais fora de escopo
-  da rotina do app; não detalhadas.
-- **Precisão de datas de doses relativas**: o app não guarda a data de aplicação → mantido
-  conservador em vez de inventar.
+## 6. Produto / plataforma
+- Login e nomenclatura Premium removidos da UI.
+- Base vacinal separada da interface e versionada.
+- “Sobre e dados”, aviso clínico, privacidade, backup/restauração/limpeza.
+- PWA instalável, manifest, ícones, assets locais e service worker.
+- SuperKit aponta para landing com UTMs e frequency cap.
+- Compartilhamento e Open Graph.
+- GA4 preparado sem PII, mas permanece desligado enquanto `GA4_MEASUREMENT_ID` estiver vazio.
+- Acessibilidade e performance melhoradas.
 
-## 5. Testes
-- **Clínicos/motor:** `node --test tests/engine.test.js` → **20/20 passam** (inclui os 4
-  casos da revisão externa e a migração).
-- **Funcionais (navegador):** primeira abertura, usuário antigo migrado sem perda, cadastro,
-  edição, exclusão, busca, filtros, alteração de dose (persistência), métricas, Próximas,
-  Calendário, Impressão, Busca Ativa, Sobre, backup (payload), validação de restauração,
-  toast/pós-valor, superkit, share — **sem erros de console** (exceto registro do SW no
-  sandbox de preview).
+## 7. Service worker
+- `CACHE_VERSION`: `radar-acs-v2.0.1-2026.09.10`.
+- Navegação `network-first` para não congelar a base clínica quando houver internet.
+- Assets locais em cache para funcionamento offline.
+- Falha de precache crítico agora é explícita e aborta instalação incompleta; não existe mais `.catch(() => {})` silencioso no `install`.
+- Atualização continua aguardando confirmação do usuário antes de `SKIP_WAITING`.
 
-## 6. Lighthouse (mobile, throttled, local)
+## 8. Testes
+A suíte foi ampliada de 20 para **25 testes**. A revisão final foi executada localmente com o mesmo conteúdo dos arquivos enviados à branch:
+
+`node --test tests/engine.test.js` → **25/25 passando**.
+
+Cobertura adicional da rodada final:
+- influenza infantil;
+- Covid infantil condicional;
+- gestante nunca `ok/Em Dia` por falta de dados;
+- dT e febre amarela excepcional na gestante;
+- dT/dTpa em trabalhador;
+- varicela em trabalhador;
+- dengue APS/Butantan dose única, de forma condicional;
+- denominador de progresso em perfis especiais;
+- revisão/versionamento `2026.09.10` e NT11.
+
+## 9. Lighthouse / performance
+Última medição executada pelo Claude Code antes da revisão clínica final:
+
 | Métrica | Antes | Depois |
-|---|---|---|
-| Performance | 45 | **75** |
+|---|---:|---:|
+| Performance | 45 | 75 |
 | Accessibility | 94 | 94 |
 | Best Practices | 96 | 96 |
 | SEO | 92 | 92 |
-| FCP | 11,0 s | **2,9 s** |
-| LCP | 18,1 s | **5,2 s** |
-| TBT | 420 ms | **0 ms** |
+| FCP | 11,0 s | 2,9 s |
+| LCP | 18,1 s | 5,2 s |
+| TBT | 420 ms | 0 ms |
 | CLS | 0 | 0,015 |
 
-Ganhos: Tailwind runtime → CSS estático (451KB→26KB); html2pdf on-demand (−906KB do caminho
-crítico); logo 1,2MB→78KB; fontes assíncronas; scripts fora do head.
+A rodada final alterou apenas dados clínicos, motor, testes, documentação e tratamento de erro do service worker; não adicionou peso relevante ao caminho crítico.
 
-## 7. Problemas encontrados
-- **NT 45/2026 é de estratégias especiais (RIE), não rotina** — confronto evitou erro clínico.
-- Suspeita inicial sobre a janela do rotavírus era **falsa** (o app já estava correto por IN 2026).
-- Bug pré-existente: editar paciente zerava `applied` (documentado; a migração/edição foi
-  revista para não perder dados válidos).
-- Referências `window.app`/`window.VACCINE_META` (escopo) — corrigidas.
+## 10. Fontes oficiais da revisão final
+- Calendário de Vacinação — Ministério da Saúde.
+- Instrução Normativa — Calendário Nacional de Vacinação 2026.
+- Calendário Nacional de Vacinação — Criança, atualizado em 29/07/2026.
+- Calendário Nacional de Vacinação — Gestante, atualizado em 27/08/2026.
+- Nota Técnica nº 11/2026-CGICI/DPNI/SVSA/MS — vacinação dengue de trabalhadores da APS, incluindo ACS/ACE, com vacina do Instituto Butantan em dose única.
+- Estratégias oficiais de vacinação contra a Covid-19.
 
-## 8. Risco residual
-- **Baixo–médio:** itens em REVISÃO HUMANA precisam de validação da equipe clínica antes de
-  qualquer afirmação sobre eles.
-- **Ambiente:** SW/instalação/offline não puderam ser exercitados no navegador de preview
-  (bloqueio de service worker no sandbox) — precisam de validação no host HTTPS real.
-- **Perf:** LCP ~5s sob throttling forte (preloader + rede). Aceitável em campo; follow-up
-  possível: encurtar/loading do preloader e `preload` da logo.
-- **A11y menor:** 2 avisos (contraste em alguns rótulos; ordem de headings) — não corrigidos
-  para não arriscar regressão visual; documentados como follow-up.
+Detalhes e URLs: `docs/revisao-final-clinica-2026-09-10.md`.
 
-## 9. Próximos passos (humanos)
-1. Validar com a equipe clínica os itens de REVISÃO HUMANA.
-2. Publicar em HTTPS e validar PWA/offline/atualização no dispositivo real.
-3. (Opcional) Definir `GA4_MEASUREMENT_ID`.
-4. (Opcional) Ajustes finos de perf/a11y.
-5. (Opcional) Domínio `radar.rotinaacs.com.br` (DNS — decisão do dono).
+## 11. Pendências reais antes do lançamento público
+1. **Smoke test em HTTPS/dispositivo real**: instalação, abertura standalone, offline, retorno online e fluxo de atualização do service worker.
+2. **GA4**: inserir um Measurement ID próprio do Radar se o objetivo do lançamento inclui contagem real de usuários desde o primeiro dia. Não reutilizar ID de outro produto sem decisão explícita.
+3. Revisar visualmente em dispositivo real se “Atenção” é suficiente para perfis especiais ou se, numa futura rodada de UI, deve virar texto explícito “Revisar situação vacinal”. Clinicamente, o falso “Em Dia” já foi eliminado pelo motor.
 
-## 10. Commits (branch `feat/radar-ampliado-v2`)
-docs (auditorias) → base+motor+migração → correções da revisão → remoção login/Premium →
-PWA assets → Sobre/backup/analytics/OG/PWA → a11y → perf → docs finais.
-Todos reversíveis; `main` intocada.
+## 12. Estado de publicação
+
+### PODE PUBLICAR: **NÃO AINDA PARA DIVULGAÇÃO PÚBLICA**
+
+Motivos objetivos:
+1. O PWA precisa do smoke test HTTPS que o ambiente de preview do Claude não permitiu executar.
+2. O GA4 está preparado, porém desligado sem `GA4_MEASUREMENT_ID`; publicar agora perderia a contagem que motivou parte desta V2.
+3. `main` permanece intocada; toda a V2 está na branch `feat/radar-ampliado-v2`.
+
+Após **smoke test HTTPS aprovado + GA4 definido (se a contagem desde o lançamento for requisito)**, a branch pode ser considerada candidata a merge/deploy.
