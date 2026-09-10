@@ -1,5 +1,34 @@
 # Changelog — Radar Vacinal ACS
 
+## v2.1.0 — 2026-09-10 (base vacinal `2026.09.10`, schema `3`)
+
+### Histórico e preservação de dados
+- **Edição de paciente não apaga mais doses**: alterar nome, nascimento ou tipo de perfil preserva `applied`, datas, histórico não confirmado e registros legados.
+- Adicionado `appliedDates` para guardar opcionalmente a data real de aplicação por dose.
+- Adicionado `historyUnknown` para representar explicitamente **Histórico não confirmado**, sem transformar ausência de informação em atraso ou aplicação.
+- Adicionado `legacyAppliedDates` para preservar datas ligadas a IDs antigos sem equivalente semântico atual.
+- Migração permanece idempotente e compatível com os registros anteriores.
+
+### Janela encerrada e doses dependentes
+- Doses com janela encerrada ganham ação **Registrar dose anterior**, destinada apenas a vacinação confirmada por caderneta, registro anterior ou informação validada pela equipe.
+- Quando não há histórico confiável, o usuário pode marcar **Histórico não confirmado** e revisar depois.
+- Rotavírus D2 e dengue D2 passam a usar a data real da dose anterior quando disponível.
+- Sem data da dose anterior, o motor continua conservador em `relative_pending` e pede conferência — nunca inventa elegibilidade.
+- Histórico não confirmado não entra automaticamente na Busca Ativa e é exibido na ficha exportada como item de revisão.
+
+### Exportação e compartilhamento
+- Mantido **PDF** para impressão/A4.
+- Adicionado **JPG** para ficha individual e Busca Ativa, gerado localmente com compressão adequada para celular.
+- Após gerar a imagem, o Radar oferece compartilhamento via Web Share API quando suportado.
+- Antes de compartilhar, o app alerta que a imagem pode conter dados pessoais e deve circular apenas pelos canais adequados da equipe.
+- Navegadores sem compartilhamento de arquivo recebem fallback por download da imagem.
+
+### Técnico
+- `schemaVersion` atualizado para `3`.
+- `CACHE_VERSION` atualizado para `radar-acs-v2.1.0-2026.09.10`.
+- Tailwind passa a escanear também `js/**/*.js`, evitando perda futura de classes usadas pelos aprimoramentos de runtime.
+- Novos eventos funcionais preparados: `historical_dose_recorded`, `dose_history_unconfirmed`, `image_exported`, `image_shared`; nenhum deles envia PII ou dado clínico individual.
+
 ## v2.0.1 — 2026-09-10 (base vacinal `2026.09.10`)
 
 ### Revisão clínica final

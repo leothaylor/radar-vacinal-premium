@@ -173,3 +173,74 @@ test('meta clínico revisado em 2026-09-10 e inclui NT11 dengue APS', () => {
   assert.strictEqual(calendar.meta.revisionDate, '2026-09-10');
   assert.ok(calendar.meta.sourceDocuments.some(s => s.id === 'NT11DENGUE'));
 });
+
+/* V2.1 — histórico de aplicação / janela encerrada */
+
+test('schema 3 habilita datas de aplicação e histórico não confirmado', () => {
+  assert.strictEqual(calendar.meta.schemaVersion, 3);
+});
+
+test('migração preserva appliedDates e historyUnknown', () => {
+  const old = {
+    id: 'c5', name: 'Histórico', birthDate: '2024-01-01',
+    applied: ['penta_1'],
+    appliedDates: { penta_1: '2024-03-01' },
+    historyUnknown: ['rota_1']
+  };
+  const m = engine.migrateChild(old, calendar);
+  assert.strictEqual(m.appliedDates.penta_1, '2024-03-01');
+  assert.ok(m.historyUnknown.includes('rota_1'));
+});
+
+test('historyUnknown vira estado history_unknown e não busca ativa', () => {
+  const child = {
+    birthDate: isoDaysAgo(400),
+    applied: [],
+    historyUnknown: ['rota_1']
+  };
+  const r = engine.analisarCalendario(child, calendar, TODAY);
+  const rota = r.doses.find(d => d.id === 'rota_1');
+  assert.strictEqual(rota.status, 'history_unknown');
+  assert.strictEqual(rota.tDateStr, 'Histórico não confirmado');
+  assert.ok(!engine.pendenciasBuscaAtiva(r).some(d => d.id === 'rota_1'));
+});
+
+test('Rotavírus D2 usa data real da D1 quando disponível', () => {
+  const child = {
+    birthDate: '2026-03-10',
+    applied: ['rota_1'],
+    appliedDates: { rota_1: '2026-07-01' }
+  };
+  const r = engine.analisarCalendario(child, calendar, TODAY);
+  const d2 = r.doses.find(d => d.id === 'rota_2');
+  assert.strictEqual(d2.status, 'eligible');
+  assert.match(d2.tDateStr, /Elegível desde/);
+});
+
+test('Dengue D2 fica future antes de 90 dias e eligible depois', () => {
+  const born = '2016-03-10';
+  const before = engine.analisarCalendario({
+    birthDate: born,
+    applied: ['dengue_1'],
+    appliedDates: { dengue_1: '2026-08-20' }
+  }, calendar, TODAY).doses.find(d => d.id === 'dengue_2');
+  assert.strictEqual(before.status, 'future');
+
+  const after = engine.analisarCalendario({
+    birthDate: born,
+    applied: ['dengue_1'],
+    appliedDates: { dengue_1: '2026-05-01' }
+  }, calendar, TODAY).doses.find(d => d.id === 'dengue_2');
+  assert.strictEqual(after.status, 'eligible');
+});
+
+test('migração preserva datas de IDs sem equivalente em legacyAppliedDates', () => {
+  const old = {
+    id: 'c6', name: 'Legacy', birthDate: '2024-01-01',
+    applied: ['id_inexistente'],
+    appliedDates: { id_inexistente: '2024-02-01' }
+  };
+  const m = engine.migrateChild(old, calendar);
+  assert.ok(m.legacyApplied.includes('id_inexistente'));
+  assert.strictEqual(m.legacyAppliedDates.id_inexistente, '2024-02-01');
+});
