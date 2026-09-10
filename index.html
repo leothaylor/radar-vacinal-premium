@@ -20,27 +20,13 @@
     <meta name="twitter:title" content="Radar Vacinal ACS">
     <meta name="twitter:description" content="Ferramenta gratuita de apoio ao acompanhamento vacinal para ACS.">
     <meta name="twitter:image" content="https://leothaylor.github.io/radar-vacinal-premium/logo-radar-acs1.png">
-    <script src="./vendor/tailwindcss.js"></script>
-    <script src="./vendor/lucide.min.js"></script>
-    <script src="./vendor/html2pdf.bundle.min.js"></script>
-    <script src="./data/vaccine-calendar-2026.js"></script>
-    <script src="./js/engine.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        brand: { light: '#2dd4bf', DEFAULT: '#0d9488', dark: '#0369a1' },
-                        clin: { ok: '#10b981', alert: '#f59e0b', danger: '#ef4444', future: '#64748b' }
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="./vendor/tailwind.build.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
     <style>
-        body { -webkit-font-smoothing: antialiased; background-color: #f1f5f9; }
+        body { -webkit-font-smoothing: antialiased; background-color: #f1f5f9; font-family: 'Inter', sans-serif; }
         .view-transition { animation: fadeIn 0.2s ease-out; }
         .slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -519,6 +505,9 @@
     </div>
 </div>
 
+<script src="./data/vaccine-calendar-2026.js"></script>
+<script src="./js/engine.js"></script>
+<script src="./vendor/lucide.min.js"></script>
 <script>
     const KIT_ACS_URL = "https://superkit.rotinaacs.com.br/?utm_source=radar_vacinal&utm_medium=internal_referral&utm_campaign=superkit_acs&utm_content=home";
     const SUPERKIT_BASE = "https://superkit.rotinaacs.com.br/";
@@ -547,6 +536,16 @@
         }
         return { init: init, track: track };
     })();
+
+    function ensureHtml2Pdf(){
+        return new Promise(function(resolve, reject){
+            if(window.html2pdf) return resolve(window.html2pdf);
+            var sc = document.createElement('script'); sc.src = './vendor/html2pdf.bundle.min.js';
+            sc.onload = function(){ resolve(window.html2pdf); };
+            sc.onerror = function(){ reject(new Error('html2pdf indisponível')); };
+            document.head.appendChild(sc);
+        });
+    }
     let currentEditProfileType = 'crianca';
     let newPatientProfileType = 'crianca';
 
@@ -801,7 +800,7 @@
             this.hideAllViews();
             document.getElementById('view-busca-ativa').classList.remove('hidden');
             document.getElementById('roteiro-data').textContent = this.formatDate(new Date());
-            this.renderBuscaAtiva();
+            this.renderBuscaAtiva();
             if(window.RadarAnalytics) RadarAnalytics.track('busca_ativa_generated');
         },
 
@@ -837,7 +836,7 @@
             const dateInp = document.getElementById('inputDate').value;
             if(!nameInp || !dateInp) return;
             const newChild = { id: 'c_' + Date.now(), name: nameInp, birthDate: dateInp, profileType: newPatientProfileType, applied: [] };
-            this.state.children.push(newChild);
+            this.state.children.push(newChild);
             if(window.RadarAnalytics) RadarAnalytics.track('patient_added', { profile: newChild.profileType });
             this.saveData();
             this.state.currentFilter = 'all';
@@ -859,7 +858,7 @@
             const child = this.state.children.find(c => c.id === this.state.activeChildId);
             if(!child.applied) child.applied = [];
             const idx = child.applied.indexOf(doseId);
-            idx === -1 ? child.applied.push(doseId) : child.applied.splice(idx, 1);
+            idx === -1 ? child.applied.push(doseId) : child.applied.splice(idx, 1);
             if(window.RadarAnalytics) RadarAnalytics.track('dose_updated');
             this.saveData(); this.renderDetail();
         },
@@ -1151,7 +1150,8 @@
             try {
                 viewEl.classList.add('exporting');
                 await new Promise(r => setTimeout(r, 400));
-                await html2pdf().set({ margin: 10, filename: `Ficha_${(child&&child.name||'Paciente').replace(/ /g,'_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                await ensureHtml2Pdf();
+                await html2pdf().set({ margin: 10, filename: `Ficha_${(child&&child.name||'Paciente').replace(/ /g,'_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
                 if(window.RadarAnalytics) RadarAnalytics.track('pdf_exported', { type: 'ficha' });
                 app.maybeShowSuperkitPosValor();
             } catch(e) { alert("Erro ao gerar arquivo."); } finally { viewEl.classList.remove('exporting'); }
@@ -1163,7 +1163,8 @@
             try {
                 viewEl.classList.add('exporting');
                 await new Promise(r => setTimeout(r, 400));
-                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                await ensureHtml2Pdf();
+                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
                 if(window.RadarAnalytics) RadarAnalytics.track('pdf_exported', { type: 'busca_ativa' });
                 app.maybeShowSuperkitPosValor();
             } catch(e) { alert("Erro ao gerar arquivo."); } finally { viewEl.classList.remove('exporting'); }

@@ -20,7 +20,7 @@ const CORE_ASSETS = [
   './logo-radar-acs1.png',
   './data/vaccine-calendar-2026.js',
   './js/engine.js',
-  './vendor/tailwindcss.js',
+  './vendor/tailwind.build.css',
   './vendor/lucide.min.js',
   './vendor/html2pdf.bundle.min.js',
   './icons/icon-192.png',
