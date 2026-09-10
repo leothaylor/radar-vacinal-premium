@@ -332,6 +332,7 @@
   window.addEventListener('load', function () {
     try {
       if (typeof app === 'undefined' || !window.RadarEngine || !window.VACCINE_CALENDAR) return;
+      try { if (typeof RadarAnalytics !== 'undefined') window.RadarAnalytics = RadarAnalytics; } catch (e) {}
 
       function activeChild() {
         return app.state.children.find(function (c) { return c.id === app.state.activeChildId; });
@@ -368,7 +369,6 @@
         return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : iso;
       }
 
-      // A. Editar nome/data/tipo nunca apaga doses já registradas.
       app.saveEditedName = function () {
         var child = activeChild();
         if (!child) return;
@@ -386,7 +386,6 @@
         }
       };
 
-      // B. Toggle preserva/limpa data corretamente e pede data só quando ela influencia dose seguinte.
       app.toggleDose = function (doseId) {
         var child = activeChild();
         if (!child) return;
@@ -412,7 +411,7 @@
         if (document.getElementById('modal-dose-history')) return;
         var wrap = document.createElement('div');
         wrap.id = 'modal-dose-history';
-        wrap.className = 'fixed inset-0 z-[80] bg-slate-900/50 hidden flex-col justify-center items-center backdrop-blur-sm view-transition px-4';
+        wrap.className = 'fixed inset-0 z-[85] bg-slate-900/50 hidden flex-col justify-center items-center backdrop-blur-sm view-transition px-4';
         wrap.innerHTML = [
           '<div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col slide-up p-5 relative">',
           '  <div class="flex items-start justify-between gap-3 mb-3">',
@@ -503,7 +502,6 @@
         wrap.classList.remove('hidden'); wrap.classList.add('flex');
       };
 
-      // C. Decora janelas encerradas e o estado "histórico não confirmado".
       var originalRenderDetail = app.renderDetail.bind(app);
       app.renderDetail = function () {
         originalRenderDetail();
@@ -591,13 +589,32 @@
             if (prev) prev.remove();
           }
 
+          var fichaList = document.getElementById('ficha-list-proximas');
+          if (fichaList) {
+            var oldFichaUnknown = document.getElementById('ficha-history-unknown');
+            if (oldFichaUnknown) oldFichaUnknown.remove();
+            if (unknowns.length) {
+              var fichaUnknown = document.createElement('div');
+              fichaUnknown.id = 'ficha-history-unknown';
+              fichaUnknown.className = 'mt-2 border-t border-amber-200 pt-2';
+              fichaUnknown.innerHTML = unknowns.map(function (v) {
+                return '<div class="flex justify-between items-end border-b border-slate-300 print-border pb-1">'
+                  + '<div><span class="font-bold text-slate-800">' + v.name + '</span> '
+                  + '<span class="text-[10px] text-slate-500">(' + v.doseLabel + ')</span>'
+                  + '<br><span class="text-[9px] uppercase font-bold text-amber-700">Histórico não confirmado — revisar caderneta/equipe</span></div>'
+                  + '<div class="w-4 h-4 border border-slate-400 print-border rounded-sm"></div>'
+                  + '</div>';
+              }).join('');
+              fichaList.appendChild(fichaUnknown);
+            }
+          }
+
           if (window.lucide) lucide.createIcons();
         } catch (e) {
           console.error('[Radar V2.1] Falha ao decorar histórico:', e);
         }
       };
 
-      // D/E. Exportação JPEG e compartilhamento da imagem.
       function blobFromCanvas(canvas, quality) {
         return new Promise(function (resolve, reject) {
           if (canvas.toBlob) {
