@@ -11,7 +11,7 @@
  *
  * IMPORTANTE: ao publicar mudança de app OU de base vacinal, atualize CACHE_VERSION.
  */
-const CACHE_VERSION = 'radar-acs-v2.0.0-2026.09.09';
+const CACHE_VERSION = 'radar-acs-v2.0.1-2026.09.10';
 
 const CORE_ASSETS = [
   './',
@@ -29,9 +29,15 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+  // Falha de precache deve impedir uma instalação "meio offline" e ficar visível no console.
   // Não chama skipWaiting: a nova versão aguarda confirmação do usuário.
   event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => cache.addAll(CORE_ASSETS)).catch(() => {})
+    caches.open(CACHE_VERSION)
+      .then((cache) => cache.addAll(CORE_ASSETS))
+      .catch((err) => {
+        console.error('[Radar SW] Falha no precache de assets críticos:', err);
+        throw err;
+      })
   );
 });
 
@@ -51,12 +57,16 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return; // cross-origin (fontes): deixa passar direto
+  if (url.origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
-        .then((res) => { const copy = res.clone(); caches.open(CACHE_VERSION).then((c) => c.put(req, copy)); return res; })
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
+          return res;
+        })
         .catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
     );
     return;
@@ -65,7 +75,11 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req)
-        .then((res) => { const copy = res.clone(); caches.open(CACHE_VERSION).then((c) => c.put(req, copy)); return res; })
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
+          return res;
+        })
         .catch(() => cached);
       return cached || network;
     })
