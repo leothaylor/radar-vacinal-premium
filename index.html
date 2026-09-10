@@ -4,9 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Radar Vacinal ACS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <meta name="description" content="Radar Vacinal ACS — ferramenta gratuita de apoio ao acompanhamento do Calendário Nacional de Vacinação para Agentes Comunitários de Saúde. Local, offline e sem cadastro.">
+    <meta name="theme-color" content="#78C7C7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Radar Vacinal ACS">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <meta property="og:title" content="Radar Vacinal ACS">
+    <meta property="og:description" content="Ferramenta gratuita de apoio ao acompanhamento vacinal para ACS. Local, offline e sem cadastro.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://leothaylor.github.io/radar-vacinal-premium/logo-radar-acs1.png">
+    <meta property="og:url" content="https://leothaylor.github.io/radar-vacinal-premium/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Radar Vacinal ACS">
+    <meta name="twitter:description" content="Ferramenta gratuita de apoio ao acompanhamento vacinal para ACS.">
+    <meta name="twitter:image" content="https://leothaylor.github.io/radar-vacinal-premium/logo-radar-acs1.png">
+    <script src="./vendor/tailwindcss.js"></script>
+    <script src="./vendor/lucide.min.js"></script>
+    <script src="./vendor/html2pdf.bundle.min.js"></script>
     <script src="./data/vaccine-calendar-2026.js"></script>
     <script src="./js/engine.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -70,6 +86,9 @@
 </head>
 <body class="text-slate-800 h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden">
 
+<!-- TOAST -->
+<div id="radar-toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[85] hidden items-center gap-3 bg-white border border-slate-200 shadow-xl rounded-2xl px-4 py-3 w-[92%] max-w-sm" role="status" aria-live="polite"></div>
+
 <!-- PRELOADER -->
 <div id="preloader" class="fixed inset-0 z-[100] bg-[#78C7C7] flex items-center justify-center">
     <div class="relative w-24 h-24 flex items-center justify-center rounded-full">
@@ -128,6 +147,48 @@
     </div>
 </div>
 
+<!-- MODAL SOBRE E DADOS -->
+<div id="modal-sobre" class="fixed inset-0 z-[70] bg-slate-900/40 hidden flex-col justify-end backdrop-blur-sm view-transition">
+    <div class="bg-white w-full max-w-md mx-auto h-[85vh] rounded-t-3xl shadow-2xl flex flex-col slide-up">
+        <div class="flex justify-between items-center px-6 py-5 border-b border-slate-100 shrink-0">
+            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i data-lucide="info" class="w-5 h-5 text-[#78C7C7]"></i> Sobre e dados</h3>
+            <button onclick="app.hideSobre()" aria-label="Fechar" class="p-2 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-5 text-sm">
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2"><p class="text-[9px] font-bold text-slate-400 uppercase">App</p><p class="text-xs font-bold text-slate-700" id="sobre-app-version">--</p></div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2"><p class="text-[9px] font-bold text-slate-400 uppercase">Base vacinal</p><p class="text-xs font-bold text-slate-700" id="sobre-data-version">--</p></div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2"><p class="text-[9px] font-bold text-slate-400 uppercase">Revisão</p><p class="text-xs font-bold text-slate-700" id="sobre-revisao">--</p></div>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p class="font-bold text-amber-800 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="stethoscope" class="w-4 h-4"></i> Aviso clínico</p>
+                <p class="text-[12px] text-amber-900 leading-relaxed">Ferramenta de apoio à organização. Antes de orientar, registrar uma pendência ou considerar uma vacina em atraso, confirme a recomendação vigente e a situação vacinal com um profissional qualificado da sua equipe ou com o serviço de vacinação. O calendário pode receber atualizações do Ministério da Saúde.</p>
+                <p class="text-[11px] text-amber-700/90 mt-2">Base vacinal revisada em <span id="sobre-revisao-inline">--</span>, com referência nas publicações oficiais do Ministério da Saúde. Consulte sempre a caderneta, o protocolo vigente e as orientações da sua equipe.</p>
+            </div>
+            <div>
+                <p class="font-bold text-slate-700 text-xs uppercase mb-2 flex items-center gap-1.5"><i data-lucide="book-marked" class="w-4 h-4 text-[#78C7C7]"></i> Fontes oficiais</p>
+                <ul id="sobre-fontes" class="list-disc pl-5 space-y-1 text-[12px] text-slate-600"></ul>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <p class="font-bold text-slate-700 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-slate-500"></i> Privacidade</p>
+                <p class="text-[12px] text-slate-600 leading-relaxed">Os dados ficam armazenados <strong>somente neste dispositivo</strong>. Prefira apelidos ou iniciais quando possível. Se o dispositivo for perdido ou os dados do navegador forem apagados sem backup, as informações não poderão ser recuperadas.</p>
+            </div>
+            <div>
+                <p class="font-bold text-slate-700 text-xs uppercase mb-2 flex items-center gap-1.5"><i data-lucide="database" class="w-4 h-4 text-[#78C7C7]"></i> Seus dados (backup local)</p>
+                <div class="space-y-2">
+                    <button onclick="app.exportBackup()" class="w-full flex items-center justify-center gap-2 bg-[#78C7C7] text-white font-bold py-3 rounded-xl shadow-sm hover:bg-teal-600 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Exportar backup</button>
+                    <button onclick="app.triggerImport()" class="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors"><i data-lucide="upload" class="w-4 h-4"></i> Restaurar backup</button>
+                    <button onclick="app.clearAllData()" class="w-full flex items-center justify-center gap-2 bg-red-50 text-red-700 border border-red-200 font-bold py-3 rounded-xl hover:bg-red-100 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i> Apagar todos os dados</button>
+                    <input type="file" id="sobre-import-input" accept="application/json,.json" class="hidden" onchange="app.importBackup(this)">
+                </div>
+                <p class="text-[10px] text-slate-400 mt-2">O backup é um arquivo salvo no seu aparelho. Nada é enviado para servidores.</p>
+            </div>
+            <button onclick="app.promptInstall()" class="w-full flex items-center justify-center gap-2 bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors mb-2"><i data-lucide="download" class="w-4 h-4"></i> Instalar o app</button>
+            <button onclick="app.shareRadar()" class="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-50 transition-colors"><i data-lucide="share-2" class="w-4 h-4"></i> Compartilhar o Radar</button>
+        </div>
+    </div>
+</div>
+
 <!-- VIEW HOME -->
 <div id="view-home" class="flex-1 flex flex-col w-full max-w-md bg-slate-50 shadow-2xl overflow-hidden relative">
     <div class="flex-1 overflow-y-auto pb-32 relative z-0">
@@ -143,6 +204,9 @@
                         <p class="text-white/90 text-[10px] font-bold tracking-wider uppercase mb-1">Apoio ao acompanhamento vacinal · nascimento até 19 anos</p>
                     </div>
                 </div>
+                <button onclick="app.showSobre()" title="Sobre e dados" aria-label="Sobre e dados" class="shrink-0 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center border border-white/25 transition-colors">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                </button>
             </div>
             <p class="text-white text-sm font-medium leading-relaxed mb-5 opacity-95">
                 Organize por apelido os pacientes da sua microárea. Apoio ao acompanhamento do Calendário Nacional de Vacinação (CNV 2026).
@@ -217,7 +281,15 @@
                 </div>
             </div>
 
-            <div class="btn-promo-pulse rounded-xl p-3 mb-4 flex items-center justify-between cursor-pointer transition-colors shadow-sm" onclick="window.open(KIT_ACS_URL, '_blank')">
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex gap-3 items-start shadow-sm">
+                <i data-lucide="stethoscope" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+                <div class="text-[11px] text-amber-900 leading-relaxed space-y-1">
+                    <p class="font-bold text-amber-800 text-xs">Aviso clínico</p>
+                    <p>Ferramenta de apoio à organização. Antes de orientar, registrar uma pendência ou considerar uma vacina em atraso, confirme a recomendação vigente e a situação vacinal com um profissional qualificado da sua equipe ou com o serviço de vacinação. O calendário pode receber atualizações do Ministério da Saúde.</p>
+                    <p class="text-amber-700/90">Base vacinal revisada em <span id="home-revisao">09/09/2026</span>, com referência nas publicações oficiais do Ministério da Saúde.</p>
+                </div>
+            </div>
+            <div class="btn-promo-pulse rounded-xl p-3 mb-4 flex items-center justify-between cursor-pointer transition-colors shadow-sm" onclick="app.superkitClick('home')">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-[#78C7C7]/10 rounded-lg flex items-center justify-center shrink-0 border border-[#78C7C7]/20">
                         <i data-lucide="briefcase" class="w-5 h-5 text-[#78C7C7]"></i>
@@ -441,6 +513,32 @@
 
 <script>
     const KIT_ACS_URL = "https://superkit.rotinaacs.com.br/?utm_source=radar_vacinal&utm_medium=internal_referral&utm_campaign=superkit_acs&utm_content=home";
+    const SUPERKIT_BASE = "https://superkit.rotinaacs.com.br/";
+    const APP_VERSION = "2.0.0";
+    const GA4_MEASUREMENT_ID = ""; // Defina 'G-XXXXXXXXXX' para ativar o GA4. Vazio = analytics desligado (app funciona normalmente).
+    const RADAR_PUBLIC_URL = (location.protocol === 'https:') ? (location.origin + location.pathname.replace(/index\.html$/, '')) : 'https://leothaylor.github.io/radar-vacinal-premium/';
+
+    const RadarAnalytics = (function(){
+        let ready = false;
+        function init(){
+            if(!GA4_MEASUREMENT_ID) return; // sem ID -> sem analytics
+            try {
+                const sc = document.createElement('script'); sc.async = true;
+                sc.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_MEASUREMENT_ID;
+                document.head.appendChild(sc);
+                window.dataLayer = window.dataLayer || [];
+                window.gtag = function(){ window.dataLayer.push(arguments); };
+                window.gtag('js', new Date());
+                window.gtag('config', GA4_MEASUREMENT_ID, { anonymize_ip: true });
+                ready = true;
+            } catch(e){}
+        }
+        // Somente parâmetros funcionais. NUNCA PII ou dado clínico individual.
+        function track(event, params){
+            try { if(ready && window.gtag) window.gtag('event', event, params || {}); } catch(e){}
+        }
+        return { init: init, track: track };
+    })();
     let currentEditProfileType = 'crianca';
     let newPatientProfileType = 'crianca';
 
@@ -471,6 +569,7 @@
     });
 
     lucide.createIcons();
+    RadarAnalytics.init();
 
     const vaccineDatabase = window.VACCINE_CALENDAR.groups;
     const VACCINE_META = window.VACCINE_CALENDAR.meta;
@@ -694,7 +793,8 @@
             this.hideAllViews();
             document.getElementById('view-busca-ativa').classList.remove('hidden');
             document.getElementById('roteiro-data').textContent = this.formatDate(new Date());
-            this.renderBuscaAtiva();
+            this.renderBuscaAtiva();
+            if(window.RadarAnalytics) RadarAnalytics.track('busca_ativa_generated');
         },
 
         setTab(tabName) {
@@ -729,7 +829,8 @@
             const dateInp = document.getElementById('inputDate').value;
             if(!nameInp || !dateInp) return;
             const newChild = { id: 'c_' + Date.now(), name: nameInp, birthDate: dateInp, profileType: newPatientProfileType, applied: [] };
-            this.state.children.push(newChild);
+            this.state.children.push(newChild);
+            if(window.RadarAnalytics) RadarAnalytics.track('patient_added', { profile: newChild.profileType });
             this.saveData();
             this.state.currentFilter = 'all';
             this.state.searchQuery = '';
@@ -750,7 +851,8 @@
             const child = this.state.children.find(c => c.id === this.state.activeChildId);
             if(!child.applied) child.applied = [];
             const idx = child.applied.indexOf(doseId);
-            idx === -1 ? child.applied.push(doseId) : child.applied.splice(idx, 1);
+            idx === -1 ? child.applied.push(doseId) : child.applied.splice(idx, 1);
+            if(window.RadarAnalytics) RadarAnalytics.track('dose_updated');
             this.saveData(); this.renderDetail();
         },
 
@@ -1041,7 +1143,9 @@
             try {
                 viewEl.classList.add('exporting');
                 await new Promise(r => setTimeout(r, 400));
-                await html2pdf().set({ margin: 10, filename: `Ficha_${(child&&child.name||'Paciente').replace(/ /g,'_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                await html2pdf().set({ margin: 10, filename: `Ficha_${(child&&child.name||'Paciente').replace(/ /g,'_')}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                if(window.RadarAnalytics) RadarAnalytics.track('pdf_exported', { type: 'ficha' });
+                app.maybeShowSuperkitPosValor();
             } catch(e) { alert("Erro ao gerar arquivo."); } finally { viewEl.classList.remove('exporting'); }
         },
 
@@ -1051,10 +1155,148 @@
             try {
                 viewEl.classList.add('exporting');
                 await new Promise(r => setTimeout(r, 400));
-                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                if(window.RadarAnalytics) RadarAnalytics.track('pdf_exported', { type: 'busca_ativa' });
+                app.maybeShowSuperkitPosValor();
             } catch(e) { alert("Erro ao gerar arquivo."); } finally { viewEl.classList.remove('exporting'); }
         }
     };
+
+    function radarFmtDateBR(iso){ if(!iso) return '--'; const p=String(iso).split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : iso; }
+
+    app.showSobre = function(){
+        const meta = VACCINE_META || {};
+        document.getElementById('sobre-app-version').textContent = APP_VERSION;
+        document.getElementById('sobre-data-version').textContent = meta.vaccineDataVersion || '--';
+        document.getElementById('sobre-revisao').textContent = radarFmtDateBR(meta.revisionDate);
+        document.getElementById('sobre-revisao-inline').textContent = radarFmtDateBR(meta.revisionDate);
+        const src = (meta.sourceDocuments||[]).map(d => '<li><a href="'+d.url+'" target="_blank" rel="noopener" class="text-teal-700 underline break-words">'+d.title+'</a></li>').join('');
+        document.getElementById('sobre-fontes').innerHTML = src || '<li>&mdash;</li>';
+        const m = document.getElementById('modal-sobre'); m.classList.remove('hidden'); m.classList.add('flex');
+        if(window.lucide) lucide.createIcons();
+    };
+    app.hideSobre = function(){ const m=document.getElementById('modal-sobre'); m.classList.add('hidden'); m.classList.remove('flex'); };
+
+    app.exportBackup = function(){
+        try {
+            const payload = { _type:'radar-vacinal-acs-backup', backupVersion:1, exportedAt:new Date().toISOString(),
+                appVersion:APP_VERSION, schemaVersion:(VACCINE_META||{}).schemaVersion||2,
+                vaccineDataVersion:(VACCINE_META||{}).vaccineDataVersion||null,
+                data:{ children: app.state.children, profile: app.state.profile } };
+            const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = 'radar-acs-backup-' + new Date().toISOString().slice(0,10) + '.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+            if(window.RadarAnalytics) RadarAnalytics.track('backup_exported');
+        } catch(e){ alert('Não foi possível gerar o backup neste dispositivo.'); }
+    };
+    app.triggerImport = function(){ document.getElementById('sobre-import-input').click(); };
+    app.importBackup = function(input){
+        const file = input.files && input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev){
+            let parsed;
+            try { parsed = JSON.parse(ev.target.result); }
+            catch(e){ alert('Arquivo inválido: não é um JSON de backup válido.'); input.value=''; return; }
+            if(!parsed || parsed._type !== 'radar-vacinal-acs-backup' || !parsed.data || !Array.isArray(parsed.data.children)){
+                alert('Arquivo inválido: não parece um backup do Radar Vacinal ACS.'); input.value=''; return;
+            }
+            if(!confirm('Restaurar ' + parsed.data.children.length + ' paciente(s)? Isso substituirá os dados atuais neste dispositivo.')){ input.value=''; return; }
+            try {
+                app.state.children = RadarEngine.migrateAll(parsed.data.children, window.VACCINE_CALENDAR);
+                const p = parsed.data.profile;
+                app.state.profile = (p && typeof p==='object') ? { name:p.name||'', equipe:p.equipe||'', microarea:p.microarea||'' } : app.state.profile;
+                app.saveData(); localStorage.setItem('radarPremiumProfile', JSON.stringify(app.state.profile));
+                app.hideSobre(); app.showHome(); app.applyProfileToDom(); app.initProfileLock();
+                alert('Backup restaurado com sucesso.');
+            } catch(e){ alert('Falha ao restaurar o backup.'); }
+            input.value='';
+        };
+        reader.onerror = function(){ alert('Não foi possível ler o arquivo.'); input.value=''; };
+        reader.readAsText(file);
+    };
+    app.clearAllData = function(){
+        if(!confirm('Apagar TODOS os pacientes e dados deste dispositivo? Esta ação não pode ser desfeita. Considere exportar um backup antes.')) return;
+        if(!confirm('Confirmar definitivamente a exclusão de todos os dados?')) return;
+        try {
+            localStorage.removeItem('radarPremiumV1'); localStorage.removeItem('radarPremiumProfile');
+            app.state.children = []; app.state.profile = { name:'', equipe:'', microarea:'' };
+            app.saveData(); localStorage.setItem('radarPremiumProfile', JSON.stringify(app.state.profile));
+            app.hideSobre(); app.showHome(); app.applyProfileToDom(); app.initProfileLock();
+        } catch(e){ alert('Não foi possível limpar os dados.'); }
+    };
+
+    app.superkitClick = function(placement){
+        const pl = placement || 'home';
+        const url = SUPERKIT_BASE + '?utm_source=radar_vacinal&utm_medium=internal_referral&utm_campaign=superkit_acs&utm_content=' + encodeURIComponent(pl);
+        RadarAnalytics.track('superkit_click', { placement: pl });
+        window.open(url, '_blank', 'noopener');
+    };
+    app.shareRadar = async function(){
+        const shareData = { title: 'Radar Vacinal ACS', text: 'Ferramenta gratuita de apoio ao acompanhamento vacinal para ACS.', url: RADAR_PUBLIC_URL };
+        RadarAnalytics.track('share_click');
+        try {
+            if(navigator.share){ await navigator.share(shareData); }
+            else if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(RADAR_PUBLIC_URL); app.toast('Link copiado para a área de transferência.'); }
+            else { window.prompt('Copie o link do Radar:', RADAR_PUBLIC_URL); }
+        } catch(e){ /* usuário cancelou o compartilhamento */ }
+    };
+    app.toast = function(message, actionLabel, actionFn, duration){
+        const wrap = document.getElementById('radar-toast'); if(!wrap) return;
+        wrap.innerHTML = '';
+        const msg = document.createElement('div'); msg.className = 'flex-1 text-[12px] text-slate-700 leading-snug'; msg.innerHTML = message; wrap.appendChild(msg);
+        if(actionLabel && actionFn){
+            const btn = document.createElement('button'); btn.className = 'shrink-0 bg-[#78C7C7] text-white text-[11px] font-bold px-3 py-2 rounded-lg';
+            btn.textContent = actionLabel; btn.onclick = function(){ try{ actionFn(); } finally { app.dismissToast(); } }; wrap.appendChild(btn);
+        }
+        const x = document.createElement('button'); x.className = 'shrink-0 text-slate-400 hover:text-slate-600 p-1 text-lg leading-none'; x.setAttribute('aria-label','Fechar'); x.innerHTML = '&times;';
+        x.onclick = app.dismissToast; wrap.appendChild(x);
+        wrap.classList.remove('hidden'); wrap.classList.add('flex');
+        clearTimeout(app._toastT); app._toastT = setTimeout(app.dismissToast, duration || 6000);
+    };
+    app.dismissToast = function(){ const w = document.getElementById('radar-toast'); if(w){ w.classList.add('hidden'); w.classList.remove('flex'); } };
+    app.maybeShowSuperkitPosValor = function(){
+        try {
+            const last = parseInt(localStorage.getItem('radarSkPosValorTs') || '0', 10);
+            if(Date.now() - last < 24 * 3600 * 1000) return; // frequency cap: no máximo 1x/24h
+            localStorage.setItem('radarSkPosValorTs', String(Date.now()));
+        } catch(e){ return; }
+        app.toast('<strong>Organizando outras rotinas do território?</strong><br>Conheça o SuperKit ACS.', 'Ver', function(){ app.superkitClick('after_pdf'); }, 9000);
+    };
+
+    try { const rv=(VACCINE_META||{}).revisionDate; const el=document.getElementById('home-revisao'); if(el&&rv){ el.textContent = radarFmtDateBR(rv); } } catch(e){}
+
+    // ---- PWA: service worker, atualização, instalação, offline ----
+    app._swReg = null; app._deferredInstall = null;
+    app.applyUpdate = function(){ try { if(app._swReg && app._swReg.waiting) app._swReg.waiting.postMessage('SKIP_WAITING'); } catch(e){} };
+    app.promptInstall = async function(){
+        if(app._deferredInstall){
+            app._deferredInstall.prompt();
+            try { const c = await app._deferredInstall.userChoice; if(c && c.outcome === 'accepted') RadarAnalytics.track('app_installed'); } catch(e){}
+            app._deferredInstall = null;
+        } else {
+            alert('Para instalar:\n• Android/Chrome: menu (⋮) e "Adicionar à tela inicial".\n• iPhone/Safari: Compartilhar e "Adicionar à Tela de Início".');
+        }
+    };
+    window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); app._deferredInstall = e; RadarAnalytics.track('install_prompt'); });
+    window.addEventListener('appinstalled', function(){ RadarAnalytics.track('app_installed'); });
+    window.addEventListener('offline', function(){ if(app.toast) app.toast('Você está offline. O Radar continua funcionando com os dados deste dispositivo.'); });
+    if('serviceWorker' in navigator){
+        window.addEventListener('load', function(){
+            navigator.serviceWorker.register('./service-worker.js').then(function(reg){
+                app._swReg = reg;
+                function notifyUpdate(){ if(app.toast) app.toast('Nova versão disponível.', 'Atualizar', app.applyUpdate, 15000); }
+                if(reg.waiting && navigator.serviceWorker.controller) notifyUpdate();
+                reg.addEventListener('updatefound', function(){
+                    var w = reg.installing; if(!w) return;
+                    w.addEventListener('statechange', function(){ if(w.state === 'installed' && navigator.serviceWorker.controller) notifyUpdate(); });
+                });
+            }).catch(function(){});
+            var refreshed = false;
+            navigator.serviceWorker.addEventListener('controllerchange', function(){ if(refreshed) return; refreshed = true; RadarAnalytics.track('update_applied'); location.reload(); });
+        });
+    }
 
     document.getElementById('addForm').addEventListener('submit', (e) => app.addChild(e));
     try {
