@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Radar Vacinal Premium</title>
+    <title>Radar Vacinal ACS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -80,31 +80,6 @@
     </div>
 </div>
 
-<!-- LOGIN SCREEN -->
-<div id="view-login" class="fixed inset-0 z-[90] bg-[#78C7C7] hidden flex-col items-center justify-center px-6">
-    <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center view-transition">
-        <img src="./logo-radar-acs1.png" alt="Logo" class="w-20 h-20 object-contain mb-4 rounded-2xl"
-            onerror="this.onerror=null; this.outerHTML='<div class=\'w-20 h-20 bg-[#78C7C7]/10 rounded-2xl flex items-center justify-center mb-4\'><i data-lucide=\'radar\' class=\'w-10 h-10 text-[#78C7C7]\'></i></div>'; lucide.createIcons();">
-        <h1 class="text-2xl font-black text-slate-800 text-center leading-tight">Radar Vacinal Premium</h1>
-        <p class="text-sm text-slate-500 font-medium mt-1 mb-6">Acesso exclusivo</p>
-        <div class="w-full space-y-3">
-            <div>
-                <label class="text-xs font-bold text-slate-600 block mb-1">Usuário</label>
-                <input type="text" id="login-user" placeholder="usuário" autocomplete="username"
-                    class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#78C7C7] font-medium text-slate-800 text-sm transition-colors">
-            </div>
-            <div>
-                <label class="text-xs font-bold text-slate-600 block mb-1">Senha</label>
-                <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
-                    class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-[#78C7C7] font-medium text-slate-800 text-sm transition-colors">
-            </div>
-            <div id="login-error" class="hidden text-xs text-red-500 font-medium text-center bg-red-50 border border-red-200 rounded-lg py-2 px-3">Credenciais incorretas. Tente novamente.</div>
-            <button onclick="doLogin()" class="w-full bg-[#78C7C7] hover:bg-teal-500 text-white font-bold py-3.5 rounded-xl shadow-md transition-all active:scale-95 mt-2">Entrar</button>
-        </div>
-    </div>
-    <p class="text-white/70 text-xs mt-6 font-medium">Radar Vacinal Premium · CNV 2026</p>
-</div>
-
 <!-- MODAL DICIONÁRIO -->
 <div id="modal-dict" class="fixed inset-0 z-50 bg-slate-900/40 hidden flex-col justify-end backdrop-blur-sm view-transition">
     <div class="bg-white w-full max-w-md mx-auto h-[75vh] rounded-t-3xl shadow-2xl flex flex-col slide-up">
@@ -164,13 +139,13 @@
                             onerror="this.onerror=null; this.outerHTML='<div class=\'w-full h-full flex items-center justify-center\'><i data-lucide=\'radar\' class=\'w-8 h-8 text-white\'></i></div>'; lucide.createIcons();">
                     </div>
                     <div>
-                        <h1 class="text-2xl font-black text-white leading-tight drop-shadow-sm">Radar Vacinal Premium</h1>
-                        <p class="text-white/90 text-[10px] font-bold tracking-wider uppercase mb-1">Cobertura completa — nascimento até 19 anos</p>
+                        <h1 class="text-2xl font-black text-white leading-tight drop-shadow-sm">Radar Vacinal ACS</h1>
+                        <p class="text-white/90 text-[10px] font-bold tracking-wider uppercase mb-1">Apoio ao acompanhamento vacinal · nascimento até 19 anos</p>
                     </div>
                 </div>
             </div>
             <p class="text-white text-sm font-medium leading-relaxed mb-5 opacity-95">
-                Organize por apelido os pacientes da sua microárea. Cobertura completa do Calendário Nacional de Vacinação 2026.
+                Organize por apelido os pacientes da sua microárea. Apoio ao acompanhamento do Calendário Nacional de Vacinação (CNV 2026).
             </p>
             <div class="grid grid-cols-4 gap-2 text-center mb-5">
                 <div class="bg-white/20 backdrop-blur-sm rounded-xl p-2 border border-white/30 shadow-sm">
@@ -334,7 +309,7 @@
             <div id="list-busca-ativa" class="space-y-4"></div>
             <div class="mt-8 pt-4 border-t border-slate-300 text-center text-[10px] text-slate-500 font-medium">
                 Ferramenta de apoio. Sempre confirme com caderneta e protocolo oficial.<br>
-                Gerado pelo Radar Vacinal Premium em <span id="roteiro-data"></span>
+                Gerado pelo Radar Vacinal ACS em <span id="roteiro-data"></span>
             </div>
         </div>
     </div>
@@ -396,7 +371,7 @@
                     <div class="w-14 h-14 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
                         <i data-lucide="check" class="w-7 h-7"></i>
                     </div>
-                    <p class="font-bold text-slate-800">Calendário em dia!</p>
+                    <p class="font-bold text-slate-800">Nenhuma pendência identificada</p>
                     <p class="text-xs text-slate-400 mt-1">Todas as doses registradas estão aplicadas.</p>
                 </div>
             </div>
@@ -423,7 +398,7 @@
             <div id="export-target" class="bg-white p-5 border border-slate-200 print-border shadow-sm min-h-[500px]">
                 <div class="border-b-2 border-slate-800 print-border pb-3 mb-4 flex justify-between items-start">
                     <div>
-                        <h2 class="text-sm font-black uppercase text-slate-900 leading-tight">Ficha de Acompanhamento Vacinal<br>para Visita Domiciliar — Premium</h2>
+                        <h2 class="text-sm font-black uppercase text-slate-900 leading-tight">Ficha de Acompanhamento Vacinal<br>para Visita Domiciliar</h2>
                         <p class="text-[9px] font-bold text-slate-500 mt-1 uppercase">Programa Nacional de Imunizações · CNV 2026</p>
                     </div>
                 </div>
@@ -466,27 +441,8 @@
 
 <script>
     const KIT_ACS_URL = "https://superkit.rotinaacs.com.br/?utm_source=radar_vacinal&utm_medium=internal_referral&utm_campaign=superkit_acs&utm_content=home";
-    const LOGIN_USER = "radar";
-    const LOGIN_PASS = "acs2026";
-
     let currentEditProfileType = 'crianca';
     let newPatientProfileType = 'crianca';
-
-    function doLogin() {
-        const u = document.getElementById('login-user').value.trim();
-        const p = document.getElementById('login-pass').value;
-        const errEl = document.getElementById('login-error');
-        if (u === LOGIN_USER && p === LOGIN_PASS) {
-            document.getElementById('view-login').classList.add('hidden');
-            app.showHome();
-        } else {
-            errEl.classList.remove('hidden');
-            setTimeout(() => errEl.classList.add('hidden'), 3000);
-        }
-    }
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !document.getElementById('view-login').classList.contains('hidden')) doLogin();
-    });
 
     function setNewProfileType(type) {
         newPatientProfileType = type;
@@ -505,14 +461,13 @@
         const preloader = document.getElementById('preloader');
         const logo = document.getElementById('preloader-logo');
         const spinner = document.getElementById('neon-spinner');
-        setTimeout(() => { if(logo) logo.classList.add('active'); }, 800);
-        setTimeout(() => { if(spinner) spinner.classList.add('neon-fade-out'); }, 1800);
+        setTimeout(() => { if(logo) logo.classList.add('active'); }, 300);
+        setTimeout(() => { if(spinner) spinner.classList.add('neon-fade-out'); }, 900);
         setTimeout(() => {
             if(preloader) { preloader.style.opacity = '0'; preloader.style.visibility = 'hidden'; }
-            document.getElementById('view-login').classList.remove('hidden');
-            document.getElementById('view-login').classList.add('flex');
-        }, 2100);
-        setTimeout(() => { if(preloader) preloader.remove(); }, 2700);
+            if (typeof app !== 'undefined') app.showHome();
+        }, 1200);
+        setTimeout(() => { if(preloader) preloader.remove(); }, 1800);
     });
 
     lucide.createIcons();
@@ -878,7 +833,7 @@
                 listEl.innerHTML = `
                     <div class="text-center py-10 bg-emerald-50 rounded-xl border border-emerald-100">
                         <div class="w-12 h-12 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="check-circle" class="w-6 h-6"></i></div>
-                        <p class="font-bold text-emerald-700">Parabéns! Sua microárea está zerada de atrasos vacinais.</p>
+                        <p class="font-bold text-emerald-700">Nenhuma pendência identificada nos registros cadastrados.</p>
                     </div>`;
                 lucide.createIcons(); return;
             }
@@ -1096,7 +1051,7 @@
             try {
                 viewEl.classList.add('exporting');
                 await new Promise(r => setTimeout(r, 400));
-                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa_Premium.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
+                await html2pdf().set({ margin: 10, filename: `Roteiro_Busca_Ativa.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(targetEl).save();
             } catch(e) { alert("Erro ao gerar arquivo."); } finally { viewEl.classList.remove('exporting'); }
         }
     };
