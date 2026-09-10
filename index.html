@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Radar Vacinal ACS</title>
     <meta name="description" content="Radar Vacinal ACS — ferramenta gratuita de apoio ao acompanhamento do Calendário Nacional de Vacinação para Agentes Comunitários de Saúde. Local, offline e sem cadastro.">
     <meta name="theme-color" content="#78C7C7">
@@ -82,6 +82,14 @@
         .pt-btn { transition: all 0.15s; }
         .pt-btn.active { background:#78C7C7; color:#fff; border-color:#78C7C7; }
         .pt-btn:not(.active) { background:#f8fafc; color:#475569; border-color:#e2e8f0; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+            .neon-ring, .neon-ring::before { animation: none !important; }
+            .btn-promo-pulse { animation: none !important; }
+        }
+        :focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; border-radius: 6px; }
+        button:focus:not(:focus-visible), input:focus:not(:focus-visible) { outline: none; }
+        button, [role="button"], a, label { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="text-slate-800 h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden">
@@ -289,7 +297,7 @@
                     <p class="text-amber-700/90">Base vacinal revisada em <span id="home-revisao">09/09/2026</span>, com referência nas publicações oficiais do Ministério da Saúde.</p>
                 </div>
             </div>
-            <div class="btn-promo-pulse rounded-xl p-3 mb-4 flex items-center justify-between cursor-pointer transition-colors shadow-sm" onclick="app.superkitClick('home')">
+            <div role="button" tabindex="0" aria-label="Conhecer o SuperKit ACS" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.superkitClick('home');}" class="bg-white border border-slate-200 hover:border-[#78C7C7]/50 rounded-xl p-3 mb-4 flex items-center justify-between cursor-pointer transition-colors shadow-sm" onclick="app.superkitClick('home')">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-[#78C7C7]/10 rounded-lg flex items-center justify-center shrink-0 border border-[#78C7C7]/20">
                         <i data-lucide="briefcase" class="w-5 h-5 text-[#78C7C7]"></i>
@@ -910,7 +918,7 @@
                         </div>
                     </div>
                     <div class="px-2 border-l border-slate-50 flex items-center justify-center h-full">
-                        <button onclick="app.deleteChild('${c.id}', event)" class="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors rounded-xl"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        <button onclick="app.deleteChild('${c.id}', event)" aria-label="Remover paciente" title="Remover paciente" class="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors rounded-xl"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                     </div>
                 </div>`;
             }).join('');
