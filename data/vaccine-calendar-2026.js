@@ -59,7 +59,7 @@
       // Transição VPC: a 2ª dose de rotina é com VPC10 (IN 2026, nota de rodapé da transição).
       { id: 'pneumo_2', name: 'Pneumocócica 10-valente (VPC10)', doseLabel: '2ª dose', indicator: 'C2', rule: { type: 'scheduled' } },
       // Rotavírus D2: intervalo mín. 60 dias após a 1ª; janela até 23m29d. Alvo prático 4m.
-      { id: 'rota_2', name: 'Rotavírus humano (VRH)', doseLabel: '2ª dose (mín. 60 dias após a 1ª)', rule: { type: 'eligibility_window', minDays: 105, maxDays: 729, targetMonths: 4 } }
+      { id: 'rota_2', name: 'Rotavírus humano (VRH)', doseLabel: '2ª dose (mín. 60 dias após a 1ª)', rule: { type: 'eligibility_window', minDays: 105, maxDays: 729, targetMonths: 4, afterDoseId: 'rota_1', minIntervalDays: 60 } }
     ]},
     { idGroup: 'g5', ageMonths: 5, ageLabel: '5 meses', profileTypes: ['crianca'], doses: [
       { id: 'menin_2', name: 'Meningocócica C', doseLabel: '2ª dose', rule: { type: 'scheduled' } }

@@ -956,7 +956,7 @@
 
                 const atrasadas = cal.filter(v => v.status==='delayed');
                 const janelasRota = cal.filter(v => v.status==='window_closed');
-                const alerta = cal.filter(v => v.status==='alert' || v.status==='eligible').sort((a,b)=>((a.daysDiff==null?900:a.daysDiff))-((b.daysDiff==null?900:b.daysDiff)));
+                const alerta = cal.filter(v => v.status==='alert' || v.status==='eligible' || v.status==='relative_pending').sort((a,b)=>((a.daysDiff==null?900:a.daysDiff))-((b.daysDiff==null?900:b.daysDiff)));
                 const futuras = cal.filter(v => v.status==='future' || v.status==='history').sort((a,b)=>((a.daysDiff==null?900:a.daysDiff))-((b.daysDiff==null?900:b.daysDiff))).slice(0,8);
 
                 const renderCard = (v, theme) => {
@@ -966,6 +966,7 @@
                     let info='';
                     if(v.status==='delayed') info='Atrasada';
                     else if(v.status==='eligible') info='Janela aberta';
+                    else if(v.status==='relative_pending') info='Confirmar caderneta';
                     else if(v.status==='window_closed') info='Janela encerrada';
                     else if(v.status==='history') info='Conforme histórico';
                     else if(v.daysDiff!=null && v.daysDiff<=0) info='Hoje';
@@ -1031,6 +1032,7 @@
                                 if(v.status==='applied') { txtColor='text-slate-400 line-through'; subColor='text-slate-300'; boxClass='border-emerald-500 bg-emerald-500 text-white'; }
                                 else if(v.status==='delayed') { txtColor='text-red-600'; subColor='text-red-500'; }
                                 else if(v.status==='eligible') { txtColor='text-amber-700'; subColor='text-amber-500'; }
+                                else if(v.status==='relative_pending') { txtColor='text-amber-700'; subColor='text-amber-500'; }
                                 else if(v.status==='history') { txtColor='text-slate-500'; subColor='text-slate-400'; }
                                 else if(windowClosed) { txtColor='text-amber-700'; subColor='text-amber-500'; }
                                 const badge = this.renderIndicatorBadge(v);
