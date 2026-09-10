@@ -2,7 +2,7 @@
  *  Rebuild: npx tailwindcss@3 -c tailwind.config.js -i tailwind-input.css -o vendor/tailwind.build.css --minify
  */
 module.exports = {
-  content: ['./index.html'],
+  content: ['./index.html', './js/**/*.js'],
   theme: {
     extend: {
       fontFamily: { sans: ['Inter', 'sans-serif'] },
