@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="./data/vaccine-calendar-2026.js"></script>
+    <script src="./js/engine.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -463,7 +465,7 @@
 </div>
 
 <script>
-    const KIT_ACS_URL = "https://pay.hotmart.com/D106253909R?utm_source=radar_vacinal_premium&utm_medium=ferramenta&utm_campaign=superkit_acs";
+    const KIT_ACS_URL = "https://superkit.rotinaacs.com.br/?utm_source=radar_vacinal&utm_medium=internal_referral&utm_campaign=superkit_acs&utm_content=home";
     const LOGIN_USER = "radar";
     const LOGIN_PASS = "acs2026";
 
@@ -515,111 +517,8 @@
 
     lucide.createIcons();
 
-    const vaccineDatabase = [
-        { idGroup: "g0", ageMonths: 0, ageLabel: "Ao nascer", profileTypes: ['crianca'], doses: [
-            { id: "hepb_0", name: "Hepatite B", doseLabel: "1 dose (até 30 dias)" },
-            { id: "bcg_u", name: "BCG", doseLabel: "1 dose" }
-        ]},
-        { idGroup: "g2", ageMonths: 2, ageLabel: "2 meses", profileTypes: ['crianca'], doses: [
-            { id: "penta_1", name: "Penta", doseLabel: "1ª dose", indicator: "C2" },
-            { id: "vip_1", name: "VIP", doseLabel: "1ª dose", indicator: "C2" },
-            { id: "pneumo_1", name: "Pneumocócica 10-valente", doseLabel: "1ª dose", indicator: "C2" },
-            { id: "rota_1", name: "Rotavírus humano VORH", doseLabel: "1ª dose", rotaWindow: 1 }
-        ]},
-        { idGroup: "g3", ageMonths: 3, ageLabel: "3 meses", profileTypes: ['crianca'], doses: [
-            { id: "menin_1", name: "Meningocócica C", doseLabel: "1ª dose" }
-        ]},
-        { idGroup: "g4", ageMonths: 4, ageLabel: "4 meses", profileTypes: ['crianca'], doses: [
-            { id: "penta_2", name: "Penta", doseLabel: "2ª dose", indicator: "C2" },
-            { id: "vip_2", name: "VIP", doseLabel: "2ª dose", indicator: "C2" },
-            { id: "pneumo_2", name: "Pneumocócica 10-valente", doseLabel: "2ª dose", indicator: "C2" },
-            { id: "rota_2", name: "Rotavírus humano VORH", doseLabel: "2ª dose", rotaWindow: 2 }
-        ]},
-        { idGroup: "g5", ageMonths: 5, ageLabel: "5 meses", profileTypes: ['crianca'], doses: [
-            { id: "menin_2", name: "Meningocócica C", doseLabel: "2ª dose" }
-        ]},
-        { idGroup: "g6", ageMonths: 6, ageLabel: "6 meses", profileTypes: ['crianca'], doses: [
-            { id: "penta_3", name: "Penta", doseLabel: "3ª dose", indicator: "C2" },
-            { id: "vip_3", name: "VIP", doseLabel: "3ª dose", indicator: "C2" },
-            { id: "influ_1", name: "Influenza trivalente", doseLabel: "1ª dose" }
-        ]},
-        { idGroup: "g6covid", ageMonths: 6, ageLabel: "6 meses — Covid-19", profileTypes: ['crianca'], doses: [
-            { id: "covid_1", name: "Covid-19", doseLabel: "1ª dose (Pfizer/Moderna)" }
-        ]},
-        { idGroup: "g7", ageMonths: 7, ageLabel: "7 meses", profileTypes: ['crianca'], doses: [
-            { id: "covid_2", name: "Covid-19", doseLabel: "2ª dose" }
-        ]},
-        { idGroup: "g9", ageMonths: 9, ageLabel: "9 meses", profileTypes: ['crianca'], doses: [
-            { id: "fa_1", name: "Febre Amarela", doseLabel: "1ª dose" },
-            { id: "covid_3", name: "Covid-19", doseLabel: "3ª dose (Pfizer ou imunocomprometidos)" }
-        ]},
-        { idGroup: "g12", ageMonths: 12, ageLabel: "12 meses", profileTypes: ['crianca'], doses: [
-            { id: "pneumo_ref", name: "Pneumocócica 10-valente", doseLabel: "reforço", indicator: "C2" },
-            { id: "menacwy_ref", name: "Meningocócica ACWY", doseLabel: "reforço (CNV 2026)" },
-            { id: "scr_1", name: "Tríplice Viral SCR", doseLabel: "1ª dose", indicator: "C2" }
-        ]},
-        { idGroup: "g15", ageMonths: 15, ageLabel: "15 meses", profileTypes: ['crianca'], doses: [
-            { id: "dtp_1", name: "DTP", doseLabel: "1º reforço" },
-            { id: "vip_ref", name: "VIP", doseLabel: "reforço" },
-            { id: "scr_2", name: "Tríplice Viral SCR", doseLabel: "2ª dose / Tetraviral", indicator: "C2" },
-            { id: "vari_1", name: "Varicela", doseLabel: "1ª dose" },
-            { id: "hepa_u", name: "Hepatite A", doseLabel: "1 dose única" }
-        ]},
-        { idGroup: "g48", ageMonths: 48, ageLabel: "4 anos", profileTypes: ['crianca'], doses: [
-            { id: "dtp_2", name: "DTP", doseLabel: "2º reforço" },
-            { id: "fa_ref", name: "Febre Amarela", doseLabel: "reforço" },
-            { id: "vari_2", name: "Varicela", doseLabel: "2ª dose" }
-        ]},
-        { idGroup: "g60", ageMonths: 60, ageLabel: "5 anos / Resgate", profileTypes: ['crianca'], doses: [
-            { id: "scr_res5", name: "Tríplice Viral SCR", doseLabel: "verificar 2 doses" },
-            { id: "hepb_res5", name: "Hepatite B", doseLabel: "verificar 3 doses" },
-            { id: "fa_res5", name: "Febre Amarela", doseLabel: "avaliar histórico" },
-            { id: "covid_res5", name: "Covid-19", doseLabel: "verificar" }
-        ]},
-        { idGroup: "g108", ageMonths: 108, ageLabel: "9 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u9", name: "HPV quadrivalente", doseLabel: "dose única (CNV 2026)", indicator: "C7" }
-        ]},
-        { idGroup: "g120", ageMonths: 120, ageLabel: "10 anos", profileTypes: ['crianca'], doses: [
-            { id: "dengue_1", name: "Dengue/Qdenga", doseLabel: "1ª dose" }
-        ]},
-        { idGroup: "g132", ageMonths: 132, ageLabel: "11 anos", profileTypes: ['crianca'], doses: [
-            { id: "menacwy_11", name: "Meningocócica ACWY", doseLabel: "dose única / reforço 11–14 anos" },
-            { id: "dengue_2", name: "Dengue/Qdenga", doseLabel: "2ª dose (3 meses após 1ª)" }
-        ]},
-        { idGroup: "g144", ageMonths: 144, ageLabel: "12 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u12", name: "HPV", doseLabel: "dose única (se não vacinou aos 9 anos)", indicator: "C7" },
-            { id: "dt_12", name: "dT Dupla Adulto", doseLabel: "atualizar esquema" }
-        ]},
-        { idGroup: "g156", ageMonths: 156, ageLabel: "13 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u13", name: "HPV", doseLabel: "resgate dose única", indicator: "C7" },
-            { id: "scr_13", name: "Tríplice Viral SCR", doseLabel: "verificar 2 doses" }
-        ]},
-        { idGroup: "g168", ageMonths: 168, ageLabel: "14 anos", profileTypes: ['crianca'], doses: [
-            { id: "hpv_u14", name: "HPV", doseLabel: "último ano de rotina PNI", indicator: "C7" },
-            { id: "menacwy_14", name: "Meningocócica ACWY", doseLabel: "verificar" },
-            { id: "hepb_14", name: "Hepatite B", doseLabel: "verificar 3 doses" }
-        ]},
-        { idGroup: "g180", ageMonths: 180, ageLabel: "15–19 anos / Resgate", profileTypes: ['crianca'], doses: [
-            { id: "hpv_res", name: "HPV", doseLabel: "resgate dose única (campanha 2026)", indicator: "C7" },
-            { id: "dt_res", name: "dT", doseLabel: "reforço ou esquema" },
-            { id: "scr_res", name: "Tríplice Viral SCR", doseLabel: "verificar histórico" },
-            { id: "hepb_res", name: "Hepatite B", doseLabel: "verificar" }
-        ]},
-        { idGroup: "gestante", ageMonths: 999, ageLabel: "Gestante", profileTypes: ['gestante'], doses: [
-            { id: "dtpa_gest", name: "dTpa", doseLabel: "1 dose a cada gestação" },
-            { id: "hepb_gest", name: "Hepatite B", doseLabel: "verificar esquema" },
-            { id: "influ_gest", name: "Influenza", doseLabel: "1 dose anual" },
-            { id: "covid_gest", name: "Covid-19", doseLabel: "reforço conforme campanha" }
-        ]},
-        { idGroup: "trabsaude", ageMonths: 998, ageLabel: "Trabalhador de Saúde", profileTypes: ['trabsaude'], doses: [
-            { id: "dtpa_trab", name: "dTpa", doseLabel: "1 dose (mesmo que tenha tomado dT)" },
-            { id: "dengue_trab", name: "Dengue/Qdenga", doseLabel: "2 doses (APS até 59 anos)" },
-            { id: "influ_trab", name: "Influenza", doseLabel: "1 dose anual" },
-            { id: "covid_trab", name: "Covid-19", doseLabel: "reforço semestral" },
-            { id: "scr_trab", name: "SCR", doseLabel: "verificar 2 doses" },
-            { id: "hepb_trab", name: "Hepatite B", doseLabel: "verificar esquema completo" }
-        ]}
-    ];
+    const vaccineDatabase = window.VACCINE_CALENDAR.groups;
+    const VACCINE_META = window.VACCINE_CALENDAR.meta;
 
     const dictDatabase = [
         { vac: "BCG", desc: "Formas graves de tuberculose." },
@@ -627,8 +526,9 @@
         { vac: "Hepatite A", desc: "Infecção do fígado (Hepatite A)." },
         { vac: "Penta", desc: "Difteria, Tétano, Coqueluche, Hepatite B e infecções por Hib. Impacta indicador C2 (3 doses)." },
         { vac: "VIP", desc: "Poliomielite injetável (substituiu VOP/gotinha — CNV 2026). Impacta indicador C2 (3 doses)." },
-        { vac: "Pneumocócica 10-valente", desc: "Pneumonia, otite e meningite por pneumococo. Impacta indicador C2 (2 doses primárias)." },
-        { vac: "Rotavírus humano VORH", desc: "Diarreia grave por rotavírus. ⚠️ Janela rígida: D1 entre 1m15d e 3m29d; D2 até 7m29d. Fora da janela, a dose é contraindicada." },
+        { vac: "Pneumocócica 20-valente (VPC20)", desc: "Pneumonia, otite e meningite por pneumococo. Rotina 2026 (transição): 1ª dose aos 2 meses e reforço aos 12 meses com VPC20. Impacta indicador C2." },
+        { vac: "Pneumocócica 10-valente (VPC10)", desc: "Usada na 2ª dose (4 meses) durante a transição para a VPC20 (IN 2026). Impacta indicador C2." },
+        { vac: "Rotavírus humano (VRH)", desc: "Diarreia grave por rotavírus. Janela (IN 2026): 1ª dose de 1m15d até 11m29d; 2ª dose de 3m15d até 23m29d; intervalo mínimo de 60 dias. Fora da janela, a oportunidade é perdida." },
         { vac: "Meningocócica C", desc: "Meningite sorogrupo C. Esquema primário: 3 e 5 meses." },
         { vac: "Meningocócica ACWY", desc: "Meningite sorogrupos A, C, W, Y. Reforço aos 12 meses (substituiu Men C — CNV 2026); dose única aos 11–14 anos." },
         { vac: "Influenza trivalente", desc: "Gripe. Aplicada a partir de 6 meses, anualmente." },
@@ -637,9 +537,9 @@
         { vac: "Tríplice Viral SCR", desc: "Sarampo, Caxumba e Rubéola. Impacta indicador C2 (D1 aos 12m e D2 aos 15m)." },
         { vac: "DTP", desc: "Difteria, Tétano e Coqueluche (reforços)." },
         { vac: "Varicela", desc: "Catapora." },
-        { vac: "HPV quadrivalente", desc: "Papilomavírus humano. Dose única para 9–14 anos (CNV 2026). Impacta indicador C7." },
-        { vac: "HPV", desc: "Papilomavírus humano. Dose única (resgate ou rotina). Impacta indicador C7." },
-        { vac: "Dengue/Qdenga", desc: "Dengue (vacina tetravalente viva atenuada). 2 doses com intervalo de 3 meses. Indicada a partir dos 10 anos para população geral; trabalhadores de saúde da APS até 59 anos." },
+        { vac: "HPV4", desc: "Papilomavírus humano. Dose ÚNICA na janela de 9 a 14 anos, 11 meses e 29 dias (rotina). Resgate 15–19 anos, dose única. Impacta indicador C7." },
+        { vac: "VSR (VVSR)", desc: "Vírus sincicial respiratório. Gestante: dose única a partir da 28ª semana, em cada gestação, protegendo o bebê nos primeiros meses (IN 2026)." },
+        { vac: "Dengue (DNG4)", desc: "Dengue (tetravalente atenuada). Rotina: 2 doses, população de 10 a 14 anos, 11 meses e 29 dias, intervalo de 3 meses entre as doses (IN 2026). Uso em trabalhador de saúde depende de informe específico — confirmar com a equipe." },
         { vac: "dT Dupla Adulto", desc: "Difteria e Tétano. Reforço a cada 10 anos para adultos." },
         { vac: "dTpa", desc: "Difteria, Tétano e Coqueluche acelular. Indicada para gestantes (1 dose a cada gestação) e trabalhadores de saúde." },
         { vac: "SCR", desc: "Sarampo, Caxumba e Rubéola (adultos/trabalhadores). Verificar 2 doses." }
@@ -796,8 +696,7 @@
             return Math.floor((now - b) / (1000*60*60*24));
         },
         getTotalDoses(profileType) {
-            const pt = profileType || 'crianca';
-            return vaccineDatabase.filter(g => g.profileTypes.includes(pt)).reduce((acc, g) => acc + g.doses.length, 0);
+            return RadarEngine.getTotalDoses(profileType || 'crianca', window.VACCINE_CALENDAR);
         },
         isRotaWindowClosed(rotaWindow, birthDateStr) {
             const days = this.getAgeInDays(birthDateStr);
@@ -807,35 +706,7 @@
         },
 
         analisarCalendario(child) {
-            const analise = [];
-            let hasDelayed = false; let hasAlert = false;
-            const childApplied = child.applied || [];
-            const pt = child.profileType || 'crianca';
-            const isSpecial = pt === 'gestante' || pt === 'trabsaude';
-
-            vaccineDatabase.filter(g => g.profileTypes.includes(pt)).forEach(group => {
-                const isSpecialGroup = group.ageMonths >= 900;
-                const tDate = isSpecialGroup ? null : this.addMonths(child.birthDate, group.ageMonths);
-                const daysDiff = isSpecialGroup ? 999 : this.getDaysDiff(tDate);
-                const tDateStr = isSpecialGroup ? 'Conforme indicação' : this.formatDate(tDate);
-
-                group.doses.forEach(dose => {
-                    let status;
-                    if(childApplied.includes(dose.id)) {
-                        status = 'applied';
-                    } else if(isSpecialGroup) {
-                        status = 'future';
-                    } else if(dose.rotaWindow && this.isRotaWindowClosed(dose.rotaWindow, child.birthDate)) {
-                        status = childApplied.includes(dose.id) ? 'applied' : 'window_closed';
-                    } else {
-                        status = daysDiff < 0 ? 'delayed' : (daysDiff <= 30 ? 'alert' : 'future');
-                    }
-                    if(status === 'delayed') hasDelayed = true;
-                    else if(status === 'alert') hasAlert = true;
-                    analise.push({ ...dose, idGroup: group.idGroup, groupLabel: group.ageLabel, tDateStr, daysDiff, status });
-                });
-            });
-            return { doses: analise, generalStatus: hasDelayed ? 'danger' : (hasAlert ? 'alert' : 'ok') };
+            return RadarEngine.analisarCalendario(child, window.VACCINE_CALENDAR, new Date());
         },
 
         hideAllViews() {
@@ -992,7 +863,7 @@
         renderBuscaAtiva() {
             let dataList = this.state.children.map(child => {
                 const res = this.analisarCalendario(child);
-                return { ...child, doses: res.doses.filter(d => d.status === 'delayed'), ageText: this.getAgeText(child.birthDate) };
+                return { ...child, doses: RadarEngine.pendenciasBuscaAtiva(res), ageText: this.getAgeText(child.birthDate) };
             }).filter(c => c.doses.length > 0);
 
             dataList.sort((a,b) => {
@@ -1085,16 +956,23 @@
 
                 const atrasadas = cal.filter(v => v.status==='delayed');
                 const janelasRota = cal.filter(v => v.status==='window_closed');
-                const alerta = cal.filter(v => v.status==='alert').sort((a,b)=>(a.daysDiff||0)-(b.daysDiff||0));
-                const futuras = cal.filter(v => v.status==='future').sort((a,b)=>(a.daysDiff||0)-(b.daysDiff||0)).slice(0,5);
+                const alerta = cal.filter(v => v.status==='alert' || v.status==='eligible').sort((a,b)=>((a.daysDiff==null?900:a.daysDiff))-((b.daysDiff==null?900:b.daysDiff)));
+                const futuras = cal.filter(v => v.status==='future' || v.status==='history').sort((a,b)=>((a.daysDiff==null?900:a.daysDiff))-((b.daysDiff==null?900:b.daysDiff))).slice(0,8);
 
                 const renderCard = (v, theme) => {
                     let bord=theme==='danger'?'border-red-200':(theme==='alert'?'border-amber-200':'border-slate-100');
                     let iconBg=theme==='danger'?'bg-red-50 text-red-500':(theme==='alert'?'bg-amber-50 text-amber-500':'bg-slate-50 text-slate-400');
                     let subTxt=theme==='danger'?'text-red-500 font-bold':(theme==='alert'?'text-amber-500':'text-slate-400');
-                    let info=theme==='danger'?'Atrasada':((v.daysDiff===0||v.daysDiff<0)?'Hoje':(v.daysDiff>=900?'Conforme indicação':`Em ${v.daysDiff}d`));
+                    let info='';
+                    if(v.status==='delayed') info='Atrasada';
+                    else if(v.status==='eligible') info='Janela aberta';
+                    else if(v.status==='window_closed') info='Janela encerrada';
+                    else if(v.status==='history') info='Conforme histórico';
+                    else if(v.daysDiff!=null && v.daysDiff<=0) info='Hoje';
+                    else if(v.daysDiff!=null && v.daysDiff>=900) info='Conforme indicação';
+                    else if(v.daysDiff!=null) info='Em '+v.daysDiff+'d';
                     const badge = this.renderIndicatorBadge(v);
-                    const rotaWarn = (v.rotaWindow && theme === 'danger') ? `<span class="badge-rota-warn">⚠ Janela fechada</span>` : '';
+                    const rotaWarn = (v.status==='window_closed') ? `<span class="badge-rota-warn">⚠ Janela fechada</span>` : '';
                     return `
                     <div class="bg-white rounded-xl p-3 border ${bord} shadow-sm flex justify-between items-center">
                         <div class="flex items-center gap-3">
@@ -1129,7 +1007,7 @@
                         const warnEl = document.createElement('div');
                         warnEl.id = 'rota-window-warn';
                         warnEl.className = 'bg-amber-50 border border-amber-300 rounded-xl p-3 mt-2 text-xs text-amber-800 font-medium';
-                        warnEl.innerHTML = `⚠️ <strong>Janela do Rotavírus encerrada:</strong> ${janelasRota.map(v=>v.name+' ('+v.doseLabel+')').join(', ')} — dose contraindicada por faixa etária. Não aplicar.`;
+                        warnEl.innerHTML = `⚠️ <strong>Janela de oportunidade encerrada:</strong> ${janelasRota.map(v=>v.name+' ('+v.doseLabel+')').join(', ')} — oportunidade encerrada por faixa etária. Verificar com a equipe.`;
                         document.getElementById('list-delayed').parentNode.appendChild(warnEl);
                     }
                 }
@@ -1152,6 +1030,8 @@
                                 let txtColor='text-slate-800'; let subColor='text-slate-500'; let boxClass='border-slate-200 text-transparent bg-slate-50';
                                 if(v.status==='applied') { txtColor='text-slate-400 line-through'; subColor='text-slate-300'; boxClass='border-emerald-500 bg-emerald-500 text-white'; }
                                 else if(v.status==='delayed') { txtColor='text-red-600'; subColor='text-red-500'; }
+                                else if(v.status==='eligible') { txtColor='text-amber-700'; subColor='text-amber-500'; }
+                                else if(v.status==='history') { txtColor='text-slate-500'; subColor='text-slate-400'; }
                                 else if(windowClosed) { txtColor='text-amber-700'; subColor='text-amber-500'; }
                                 const badge = this.renderIndicatorBadge(v);
                                 const rotaTag = windowClosed ? `<span class="badge-rota-warn">⚠ janela fechada</span>` : '';
@@ -1220,6 +1100,11 @@
     };
 
     document.getElementById('addForm').addEventListener('submit', (e) => app.addChild(e));
+    try {
+        app.state.children = RadarEngine.migrateAll(app.state.children, window.VACCINE_CALENDAR);
+        app.saveData();
+        localStorage.setItem('radarSchemaVersion', String((window.VACCINE_CALENDAR.meta || {}).schemaVersion || 2));
+    } catch(e) { console.error('Falha na migração de dados', e); }
     app.applyProfileToDom();
     app.initProfileLock();
 </script>
