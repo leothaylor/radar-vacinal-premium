@@ -11,7 +11,7 @@
  *
  * IMPORTANTE: ao publicar mudança de app OU de base vacinal, atualize CACHE_VERSION.
  */
-const CACHE_VERSION = 'radar-acs-v2.1.4-ui1-2026.09.15';
+const CACHE_VERSION = 'radar-acs-v2.1.4-pwa-analytics1-2026.09.15';
 
 const CORE_ASSETS = [
   './',
@@ -23,6 +23,7 @@ const CORE_ASSETS = [
   './js/engine-core.js',
   './js/engine-release-patch.js',
   './js/ui-release-fix.js',
+  './js/pwa-analytics-diagnostic.js',
   './vendor/tailwind.build.css',
   './vendor/lucide.min.js',
   './vendor/html2pdf.bundle.min.js',
