@@ -6,12 +6,12 @@
  *    offline, cai para o cache. Assim o cache NÃO congela a base clínica: uma nova
  *    versão publicada é detectada assim que há internet.
  *  - Demais assets locais: stale-while-revalidate (rápido, mas atualiza em segundo plano).
- *  - Uma nova versão do SW NÃO ativa sozinha no meio de uma ação: espera o usuário
- *    tocar em "Atualizar" (mensagem SKIP_WAITING).
+ *  - A partir da 2.1.2, uma nova versão válida ativa automaticamente após o precache.
+ *    Isso evita PWAs instalados presos indefinidamente em uma versão antiga.
  *
  * IMPORTANTE: ao publicar mudança de app OU de base vacinal, atualize CACHE_VERSION.
  */
-const CACHE_VERSION = 'radar-acs-v2.1.1-2026.09.15';
+const CACHE_VERSION = 'radar-acs-v2.1.2-2026.09.15';
 
 const CORE_ASSETS = [
   './',
@@ -31,11 +31,11 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  // Falha de precache deve impedir uma instalação "meio offline" e ficar visível no console.
-  // Não chama skipWaiting: a nova versão aguarda confirmação do usuário.
+  // Só ativa a nova versão depois que todo o app shell crítico foi salvo com sucesso.
   event.waitUntil(
     caches.open(CACHE_VERSION)
       .then((cache) => cache.addAll(CORE_ASSETS))
+      .then(() => self.skipWaiting())
       .catch((err) => {
         console.error('[Radar SW] Falha no precache de assets críticos:', err);
         throw err;
@@ -51,6 +51,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Compatibilidade com clientes 2.0/2.1.1 que ainda enviem a ação manual de atualização.
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
