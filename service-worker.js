@@ -21,6 +21,7 @@ const CORE_ASSETS = [
   './data/vaccine-calendar-2026.js',
   './js/engine.js',
   './js/engine-core.js',
+  './js/engine-release-patch.js',
   './vendor/tailwind.build.css',
   './vendor/lucide.min.js',
   './vendor/html2pdf.bundle.min.js',
