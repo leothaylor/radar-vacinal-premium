@@ -11,7 +11,7 @@
  *
  * IMPORTANTE: ao publicar mudança de app OU de base vacinal, atualize CACHE_VERSION.
  */
-const CACHE_VERSION = 'radar-acs-v2.1.3-2026.09.15';
+const CACHE_VERSION = 'radar-acs-v2.1.4-2026.09.15';
 
 const CORE_ASSETS = [
   './',

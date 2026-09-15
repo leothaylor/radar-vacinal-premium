@@ -1,8 +1,9 @@
 /*
- * Radar Vacinal ACS — patch de release v2.1.3 (2026-09-15)
+ * Radar Vacinal ACS — patch de release v2.1.4 (2026-09-15)
  * Preserva o motor V2.1 em engine-core.js e aplica correção de fronteira etária + GA4 sanitizado.
  * V2.1.2 reforçou a atualização automática do PWA.
- * V2.1.3 adiciona verificação manual de atualização em "Sobre e dados".
+ * V2.1.3 adicionou verificação manual de atualização em "Sobre e dados".
+ * V2.1.4 corrige a exibição da versão real no modal e no backup JSON.
  */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
@@ -17,7 +18,7 @@
     throw new Error('Radar Engine core não carregado.');
   }
 
-  var RELEASE_VERSION = '2.1.3';
+  var RELEASE_VERSION = '2.1.4';
   var GA4_ID = 'G-1R4X13FDVY';
   var originalAnalyze = core.analisarCalendario;
 
@@ -108,8 +109,8 @@
   patched.releaseVersion = RELEASE_VERSION;
 
   function initGtag() {
-    if (!win || !doc || win.__RADAR_GA4_213_INITIALIZED__) return;
-    win.__RADAR_GA4_213_INITIALIZED__ = true;
+    if (!win || !doc || win.__RADAR_GA4_214_INITIALIZED__) return;
+    win.__RADAR_GA4_214_INITIALIZED__ = true;
     win.dataLayer = win.dataLayer || [];
     win.gtag = win.gtag || function () { win.dataLayer.push(arguments); };
     win.gtag('js', new Date());
@@ -125,7 +126,7 @@
   }
 
   function hookRadarAnalytics() {
-    if (!win || !doc || win.__RADAR_ANALYTICS_213_HOOKED__) return;
+    if (!win || !doc || win.__RADAR_ANALYTICS_214_HOOKED__) return;
     try {
       if (typeof RadarAnalytics === 'undefined' || !RadarAnalytics) return;
       RadarAnalytics.track = function (event, params) {
@@ -140,9 +141,9 @@
         win.gtag('event', event, clean);
       };
       win.RadarAnalytics = RadarAnalytics;
-      win.__RADAR_ANALYTICS_213_HOOKED__ = true;
+      win.__RADAR_ANALYTICS_214_HOOKED__ = true;
     } catch (e) {
-      console.error('[Radar 2.1.3] Não foi possível acoplar o analytics:', e);
+      console.error('[Radar 2.1.4] Não foi possível acoplar o analytics:', e);
     }
   }
 
@@ -217,7 +218,7 @@
         win.RadarAnalytics.track('update_check');
       }
     } catch (e) {
-      console.error('[Radar 2.1.3] Falha na verificação manual de atualização:', e);
+      console.error('[Radar 2.1.4] Falha na verificação manual de atualização:', e);
       setUpdateStatus('Não foi possível verificar agora. Confirme a internet e tente novamente.', 'error');
     } finally {
       if (button) {
@@ -265,6 +266,62 @@
     scroller.appendChild(box);
   }
 
+  function syncDisplayedVersion() {
+    if (!doc) return;
+    var versionEl = doc.getElementById('sobre-app-version');
+    if (versionEl) versionEl.textContent = RELEASE_VERSION;
+    var statusEl = doc.getElementById('radar-manual-update-status');
+    if (statusEl && /^Versão instalada:/.test(statusEl.textContent || '')) {
+      statusEl.textContent = 'Versão instalada: ' + RELEASE_VERSION;
+    }
+  }
+
+  function hookLegacyVersionWriters() {
+    if (!win || !win.app || win.__RADAR_SHOW_SOBRE_214_HOOKED__) return;
+    if (typeof win.app.showSobre === 'function') {
+      var legacyShowSobre = win.app.showSobre;
+      win.app.showSobre = function () {
+        var result = legacyShowSobre.apply(this, arguments);
+        syncDisplayedVersion();
+        return result;
+      };
+      win.__RADAR_SHOW_SOBRE_214_HOOKED__ = true;
+    }
+  }
+
+  function hookBackupExportVersion() {
+    if (!win || !win.app || win.__RADAR_BACKUP_214_HOOKED__) return;
+    if (typeof win.app.exportBackup !== 'function') return;
+
+    win.app.exportBackup = function () {
+      try {
+        var meta = (typeof VACCINE_META !== 'undefined' && VACCINE_META) ? VACCINE_META : {};
+        var payload = {
+          _type: 'radar-vacinal-acs-backup',
+          backupVersion: 1,
+          exportedAt: new Date().toISOString(),
+          appVersion: RELEASE_VERSION,
+          schemaVersion: meta.schemaVersion || 2,
+          vaccineDataVersion: meta.vaccineDataVersion || null,
+          data: { children: win.app.state.children, profile: win.app.state.profile }
+        };
+        var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = doc.createElement('a');
+        a.href = url;
+        a.download = 'radar-acs-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+        doc.body.appendChild(a);
+        a.click();
+        doc.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+        if (win.RadarAnalytics && typeof win.RadarAnalytics.track === 'function') win.RadarAnalytics.track('backup_exported');
+      } catch (e) {
+        alert('Não foi possível gerar o backup neste dispositivo.');
+      }
+    };
+    win.__RADAR_BACKUP_214_HOOKED__ = true;
+  }
+
   function requestServiceWorkerUpdate() {
     if (!win || !win.navigator || !win.navigator.serviceWorker) return;
     try {
@@ -279,8 +336,9 @@
     initGtag();
     hookRadarAnalytics();
     injectManualUpdateControl();
-    var versionEl = doc && doc.getElementById('sobre-app-version');
-    if (versionEl) versionEl.textContent = RELEASE_VERSION;
+    hookLegacyVersionWriters();
+    hookBackupExportVersion();
+    syncDisplayedVersion();
   }
 
   if (win && doc) {
@@ -292,9 +350,15 @@
       finalizeReleaseRuntime();
       requestServiceWorkerUpdate();
     });
-    win.addEventListener('pageshow', requestServiceWorkerUpdate);
+    win.addEventListener('pageshow', function () {
+      finalizeReleaseRuntime();
+      requestServiceWorkerUpdate();
+    });
     doc.addEventListener('visibilitychange', function () {
-      if (!doc.hidden) requestServiceWorkerUpdate();
+      if (!doc.hidden) {
+        finalizeReleaseRuntime();
+        requestServiceWorkerUpdate();
+      }
     });
   }
 
