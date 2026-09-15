@@ -1,6 +1,7 @@
 /*
- * Radar Vacinal ACS — patch de release v2.1.1 (2026-09-15)
+ * Radar Vacinal ACS — patch de release v2.1.2 (2026-09-15)
  * Preserva o motor V2.1 em engine-core.js e aplica correção de fronteira etária + GA4 sanitizado.
+ * V2.1.2 reforça a atualização do PWA instalado com checagem explícita do service worker.
  */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
@@ -15,7 +16,7 @@
     throw new Error('Radar Engine core não carregado.');
   }
 
-  var RELEASE_VERSION = '2.1.1';
+  var RELEASE_VERSION = '2.1.2';
   var GA4_ID = 'G-1R4X13FDVY';
   var originalAnalyze = core.analisarCalendario;
 
@@ -106,8 +107,8 @@
   patched.releaseVersion = RELEASE_VERSION;
 
   function initGtag() {
-    if (!win || !doc || win.__RADAR_GA4_211_INITIALIZED__) return;
-    win.__RADAR_GA4_211_INITIALIZED__ = true;
+    if (!win || !doc || win.__RADAR_GA4_212_INITIALIZED__) return;
+    win.__RADAR_GA4_212_INITIALIZED__ = true;
     win.dataLayer = win.dataLayer || [];
     win.gtag = win.gtag || function () { win.dataLayer.push(arguments); };
     win.gtag('js', new Date());
@@ -123,7 +124,7 @@
   }
 
   function hookRadarAnalytics() {
-    if (!win || !doc || win.__RADAR_ANALYTICS_211_HOOKED__) return;
+    if (!win || !doc || win.__RADAR_ANALYTICS_212_HOOKED__) return;
     try {
       if (typeof RadarAnalytics === 'undefined' || !RadarAnalytics) return;
       RadarAnalytics.track = function (event, params) {
@@ -138,10 +139,20 @@
         win.gtag('event', event, clean);
       };
       win.RadarAnalytics = RadarAnalytics;
-      win.__RADAR_ANALYTICS_211_HOOKED__ = true;
+      win.__RADAR_ANALYTICS_212_HOOKED__ = true;
     } catch (e) {
-      console.error('[Radar 2.1.1] Não foi possível acoplar o analytics:', e);
+      console.error('[Radar 2.1.2] Não foi possível acoplar o analytics:', e);
     }
+  }
+
+  function requestServiceWorkerUpdate() {
+    if (!win || !win.navigator || !win.navigator.serviceWorker) return;
+    try {
+      win.navigator.serviceWorker.getRegistration().then(function (registration) {
+        if (!registration || typeof registration.update !== 'function') return;
+        registration.update().catch(function () {});
+      }).catch(function () {});
+    } catch (e) {}
   }
 
   function finalizeReleaseRuntime() {
@@ -153,8 +164,16 @@
 
   if (win && doc) {
     setTimeout(finalizeReleaseRuntime, 0);
+    setTimeout(requestServiceWorkerUpdate, 750);
     win.addEventListener('DOMContentLoaded', finalizeReleaseRuntime);
-    win.addEventListener('load', finalizeReleaseRuntime);
+    win.addEventListener('load', function () {
+      finalizeReleaseRuntime();
+      requestServiceWorkerUpdate();
+    });
+    win.addEventListener('pageshow', requestServiceWorkerUpdate);
+    doc.addEventListener('visibilitychange', function () {
+      if (!doc.hidden) requestServiceWorkerUpdate();
+    });
   }
 
   return patched;
