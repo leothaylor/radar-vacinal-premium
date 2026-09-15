@@ -105,10 +105,9 @@
   patched.analisarCalendario = patchedAnalyze;
   patched.releaseVersion = RELEASE_VERSION;
 
-  function installAnalytics() {
-    if (!win || !doc || win.__RADAR_RELEASE_211_INSTALLED__) return;
-    win.__RADAR_RELEASE_211_INSTALLED__ = true;
-
+  function initGtag() {
+    if (!win || !doc || win.__RADAR_GA4_211_INITIALIZED__) return;
+    win.__RADAR_GA4_211_INITIALIZED__ = true;
     win.dataLayer = win.dataLayer || [];
     win.gtag = win.gtag || function () { win.dataLayer.push(arguments); };
     win.gtag('js', new Date());
@@ -121,33 +120,41 @@
       script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_ID;
       doc.head.appendChild(script);
     }
+  }
 
+  function hookRadarAnalytics() {
+    if (!win || !doc || win.__RADAR_ANALYTICS_211_HOOKED__) return;
     try {
-      if (typeof RadarAnalytics !== 'undefined' && RadarAnalytics) {
-        RadarAnalytics.track = function (event, params) {
-          if (!event || typeof event !== 'string') return;
-          var clean = {};
-          if (params && typeof params === 'object') {
-            if (params.type === 'ficha' || params.type === 'busca_ativa') clean.type = params.type;
-            if (typeof params.placement === 'string' && /^(home|after_pdf|after_image|after_export|pos_valor)$/.test(params.placement)) {
-              clean.placement = params.placement;
-            }
+      if (typeof RadarAnalytics === 'undefined' || !RadarAnalytics) return;
+      RadarAnalytics.track = function (event, params) {
+        if (!event || typeof event !== 'string') return;
+        var clean = {};
+        if (params && typeof params === 'object') {
+          if (params.type === 'ficha' || params.type === 'busca_ativa') clean.type = params.type;
+          if (typeof params.placement === 'string' && /^(home|after_pdf|after_image|after_export|pos_valor)$/.test(params.placement)) {
+            clean.placement = params.placement;
           }
-          win.gtag('event', event, clean);
-        };
-        win.RadarAnalytics = RadarAnalytics;
-      }
+        }
+        win.gtag('event', event, clean);
+      };
+      win.RadarAnalytics = RadarAnalytics;
+      win.__RADAR_ANALYTICS_211_HOOKED__ = true;
     } catch (e) {
       console.error('[Radar 2.1.1] Não foi possível acoplar o analytics:', e);
     }
+  }
 
-    var versionEl = doc.getElementById('sobre-app-version');
+  function finalizeReleaseRuntime() {
+    initGtag();
+    hookRadarAnalytics();
+    var versionEl = doc && doc.getElementById('sobre-app-version');
     if (versionEl) versionEl.textContent = RELEASE_VERSION;
   }
 
   if (win && doc) {
-    setTimeout(installAnalytics, 0);
-    win.addEventListener('load', installAnalytics, { once: true });
+    setTimeout(finalizeReleaseRuntime, 0);
+    win.addEventListener('DOMContentLoaded', finalizeReleaseRuntime);
+    win.addEventListener('load', finalizeReleaseRuntime);
   }
 
   return patched;
