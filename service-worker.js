@@ -11,7 +11,7 @@
  *
  * IMPORTANTE: ao publicar mudança de app OU de base vacinal, atualize CACHE_VERSION.
  */
-const CACHE_VERSION = 'radar-acs-v2.1.0-2026.09.10';
+const CACHE_VERSION = 'radar-acs-v2.1.1-2026.09.15';
 
 const CORE_ASSETS = [
   './',
@@ -20,6 +20,7 @@ const CORE_ASSETS = [
   './logo-radar-acs1.png',
   './data/vaccine-calendar-2026.js',
   './js/engine.js',
+  './js/engine-core.js',
   './vendor/tailwind.build.css',
   './vendor/lucide.min.js',
   './vendor/html2pdf.bundle.min.js',
@@ -29,8 +30,6 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  // Falha de precache deve impedir uma instalação "meio offline" e ficar visível no console.
-  // Não chama skipWaiting: a nova versão aguarda confirmação do usuário.
   event.waitUntil(
     caches.open(CACHE_VERSION)
       .then((cache) => cache.addAll(CORE_ASSETS))
