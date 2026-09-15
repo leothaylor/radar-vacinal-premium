@@ -1,7 +1,8 @@
 /*
- * Radar Vacinal ACS — patch de release v2.1.2 (2026-09-15)
+ * Radar Vacinal ACS — patch de release v2.1.3 (2026-09-15)
  * Preserva o motor V2.1 em engine-core.js e aplica correção de fronteira etária + GA4 sanitizado.
- * V2.1.2 reforça a atualização do PWA instalado com checagem explícita do service worker.
+ * V2.1.2 reforçou a atualização automática do PWA.
+ * V2.1.3 adiciona verificação manual de atualização em "Sobre e dados".
  */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
@@ -16,7 +17,7 @@
     throw new Error('Radar Engine core não carregado.');
   }
 
-  var RELEASE_VERSION = '2.1.2';
+  var RELEASE_VERSION = '2.1.3';
   var GA4_ID = 'G-1R4X13FDVY';
   var originalAnalyze = core.analisarCalendario;
 
@@ -107,8 +108,8 @@
   patched.releaseVersion = RELEASE_VERSION;
 
   function initGtag() {
-    if (!win || !doc || win.__RADAR_GA4_212_INITIALIZED__) return;
-    win.__RADAR_GA4_212_INITIALIZED__ = true;
+    if (!win || !doc || win.__RADAR_GA4_213_INITIALIZED__) return;
+    win.__RADAR_GA4_213_INITIALIZED__ = true;
     win.dataLayer = win.dataLayer || [];
     win.gtag = win.gtag || function () { win.dataLayer.push(arguments); };
     win.gtag('js', new Date());
@@ -124,7 +125,7 @@
   }
 
   function hookRadarAnalytics() {
-    if (!win || !doc || win.__RADAR_ANALYTICS_212_HOOKED__) return;
+    if (!win || !doc || win.__RADAR_ANALYTICS_213_HOOKED__) return;
     try {
       if (typeof RadarAnalytics === 'undefined' || !RadarAnalytics) return;
       RadarAnalytics.track = function (event, params) {
@@ -139,10 +140,129 @@
         win.gtag('event', event, clean);
       };
       win.RadarAnalytics = RadarAnalytics;
-      win.__RADAR_ANALYTICS_212_HOOKED__ = true;
+      win.__RADAR_ANALYTICS_213_HOOKED__ = true;
     } catch (e) {
-      console.error('[Radar 2.1.2] Não foi possível acoplar o analytics:', e);
+      console.error('[Radar 2.1.3] Não foi possível acoplar o analytics:', e);
     }
+  }
+
+  function setUpdateStatus(message, state) {
+    if (!doc) return;
+    var el = doc.getElementById('radar-manual-update-status');
+    if (!el) return;
+    el.textContent = message || '';
+    el.className = 'text-xs mt-2 ' + (state === 'error' ? 'text-red-600' : state === 'ok' ? 'text-emerald-700' : 'text-slate-500');
+  }
+
+  function waitForWorker(registration) {
+    return new Promise(function (resolve) {
+      if (!registration) return resolve(false);
+
+      if (registration.waiting) {
+        registration.waiting.postMessage('SKIP_WAITING');
+        return resolve(true);
+      }
+
+      var worker = registration.installing;
+      if (!worker) return resolve(false);
+
+      var done = false;
+      function finish(value) {
+        if (done) return;
+        done = true;
+        resolve(value);
+      }
+
+      worker.addEventListener('statechange', function () {
+        if (worker.state === 'installed') {
+          if (registration.waiting) registration.waiting.postMessage('SKIP_WAITING');
+          finish(true);
+        } else if (worker.state === 'activated') {
+          finish(true);
+        } else if (worker.state === 'redundant') {
+          finish(false);
+        }
+      });
+
+      setTimeout(function () { finish(false); }, 10000);
+    });
+  }
+
+  async function manualUpdateCheck() {
+    if (!win || !win.navigator || !win.navigator.serviceWorker) {
+      setUpdateStatus('Este navegador não oferece atualização por Service Worker.', 'error');
+      return;
+    }
+
+    var button = doc && doc.getElementById('radar-manual-update-btn');
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Verificando...';
+    }
+    setUpdateStatus('Consultando a versão publicada...', 'neutral');
+
+    try {
+      var registration = await win.navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' });
+      await registration.update();
+
+      var updateFound = await waitForWorker(registration);
+      if (updateFound) {
+        setUpdateStatus('Atualização encontrada. Aplicando...', 'ok');
+        setTimeout(function () { win.location.reload(); }, 1200);
+        return;
+      }
+
+      setUpdateStatus('Você já está usando a versão mais recente disponível.', 'ok');
+      if (win.RadarAnalytics && typeof win.RadarAnalytics.track === 'function') {
+        win.RadarAnalytics.track('update_check');
+      }
+    } catch (e) {
+      console.error('[Radar 2.1.3] Falha na verificação manual de atualização:', e);
+      setUpdateStatus('Não foi possível verificar agora. Confirme a internet e tente novamente.', 'error');
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Verificar atualização';
+      }
+    }
+  }
+
+  function injectManualUpdateControl() {
+    if (!doc || doc.getElementById('radar-manual-update-btn')) return;
+    var modal = doc.getElementById('modal-sobre');
+    if (!modal) return;
+    var scroller = modal.querySelector('.overflow-y-auto');
+    if (!scroller) return;
+
+    var box = doc.createElement('div');
+    box.id = 'radar-manual-update-box';
+    box.className = 'bg-slate-50 border border-slate-200 rounded-xl p-4';
+
+    var title = doc.createElement('p');
+    title.className = 'font-bold text-slate-800 text-sm';
+    title.textContent = 'Atualizações';
+
+    var description = doc.createElement('p');
+    description.className = 'text-xs text-slate-500 mt-1';
+    description.textContent = 'Se o Radar parecer desatualizado, faça uma verificação manual sem apagar seus dados.';
+
+    var button = doc.createElement('button');
+    button.type = 'button';
+    button.id = 'radar-manual-update-btn';
+    button.className = 'mt-3 w-full bg-slate-800 text-white font-bold py-3 rounded-xl text-sm disabled:opacity-60';
+    button.textContent = 'Verificar atualização';
+    button.addEventListener('click', manualUpdateCheck);
+
+    var status = doc.createElement('p');
+    status.id = 'radar-manual-update-status';
+    status.className = 'text-xs text-slate-500 mt-2';
+    status.textContent = 'Versão instalada: ' + RELEASE_VERSION;
+
+    box.appendChild(title);
+    box.appendChild(description);
+    box.appendChild(button);
+    box.appendChild(status);
+    scroller.appendChild(box);
   }
 
   function requestServiceWorkerUpdate() {
@@ -158,11 +278,13 @@
   function finalizeReleaseRuntime() {
     initGtag();
     hookRadarAnalytics();
+    injectManualUpdateControl();
     var versionEl = doc && doc.getElementById('sobre-app-version');
     if (versionEl) versionEl.textContent = RELEASE_VERSION;
   }
 
   if (win && doc) {
+    win.RadarManualUpdateCheck = manualUpdateCheck;
     setTimeout(finalizeReleaseRuntime, 0);
     setTimeout(requestServiceWorkerUpdate, 750);
     win.addEventListener('DOMContentLoaded', finalizeReleaseRuntime);
