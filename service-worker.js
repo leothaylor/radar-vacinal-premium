@@ -30,6 +30,8 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+  // Falha de precache deve impedir uma instalação "meio offline" e ficar visível no console.
+  // Não chama skipWaiting: a nova versão aguarda confirmação do usuário.
   event.waitUntil(
     caches.open(CACHE_VERSION)
       .then((cache) => cache.addAll(CORE_ASSETS))
